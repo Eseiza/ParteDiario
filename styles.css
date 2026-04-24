@@ -1,24 +1,48 @@
 /* ══════════════════════════════════════
    ROMERO PANIFICADOS — PARTES MTTO
 ══════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-:root {
-  --bg:        #0e1a12;
-  --surface:   #141f17;
-  --surface2:  #1c2b20;
-  --border:    #2a3d2e;
-  --accent:    #4caf50;
-  --accent2:   #e8452c;
-  --amber:     #c8860a;
-  --blue:      #2a7ab5;
-  --text:      #e8f5e9;
-  --muted:     #6a8f6e;
+   :root {
+  /* Paleta Gris Carbón */
+  --bg:       #1a1a1a;        /* Fondo profundo */
+  --surface:   #262626;       /* Tarjetas (Gris oscuro de la imagen) */
+  --surface2:  #33363b;       /* Inputs y hover */
+  --border:    #40444b;       /* Bordes sutiles */
+  --accent:    #e8452c;       /* Rojo Pendiente / Acento */
+  --accent2:   #c8860a;       /* Dorado En Progreso */
+  --green:     #2d4a2e;       /* Verde Completado (oscuro, tipo badge) */
+  --green-text: #4caf50;      /* Texto verde brillante para legibilidad */
+  --text:      #f0f2f5;
+  --muted:     #8e9297;       /* Gris técnico de la descripción */
+  
   --font-head: 'Bebas Neue', sans-serif;
   --font-mono: 'DM Mono', monospace;
   --font-body: 'DM Sans', sans-serif;
 }
+
+/* Modificación de Badges para que coincidan con la imagen */
+.parte-estado.completado, .estado-btn.selected[data-estado="completado"] {
+  background: #1b2b1c; color: #63b167; border: 1px solid #2d4a2e;
+}
+
+.parte-estado.pendiente, .estado-btn.selected[data-estado="pendiente"] {
+  background: #3a1e1a; color: #ff6b57; border: 1px solid #66261d;
+}
+
+.parte-estado.en-progreso, .estado-btn.selected[data-estado="en-progreso"] {
+  background: #332b12; color: #f5b324; border: 1px solid #5c4a14;
+}
+
+/* La barra de progreso de la imagen */
+.progress-bar-mock {
+  height: 4px;
+  background: linear-gradient(to right, var(--border) 30%, var(--accent) 30%);
+  border-radius: 2px;
+  margin-top: 10px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
