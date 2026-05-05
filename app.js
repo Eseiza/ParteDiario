@@ -15,8 +15,8 @@ const db = getFirestore(app);
 const COL = "partes";
 
 const USERS = {
-    "mtto1": { password: "123", role: "mantenimiento", nombre: "Técnico Juan" },
-    "supervisor1": { password: "123", role: "supervisor", nombre: "Gte. Producción" },
+    "mtto1": { password: "mtto123", role: "mantenimiento", nombre: "Técnico" },
+    "supervisor1": { password: "super123", role: "supervisor", nombre: "Producción" },
     "admin": { password: "123", role: "visualizador", nombre: "Admin Romero" }
 };
 
