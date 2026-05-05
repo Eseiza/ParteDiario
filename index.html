@@ -45,6 +45,7 @@
   </div>
 </div>
 
+<!-- ══ PANTALLA MANTENIMIENTO ══ -->
 <div id="screen-carga" style="display:none;">
   <header>
     <div class="logo">
@@ -60,7 +61,7 @@
 
   <div class="vis-tabs">
     <div class="vis-tab active" data-tab="tab-nuevo">NUEVO PARTE</div>
-    <div class="vis-tab" data-tab="tab-historial-carga">MIS PARTES</div>
+    <div class="vis-tab" data-tab="tab-historial-carga">HISTORIAL</div>
   </div>
 
   <div id="tab-nuevo" class="vis-tab-content app-content active">
@@ -71,6 +72,7 @@
 
     <div class="card">
       <div class="form-grid">
+
         <div class="field">
           <label>Turno</label>
           <div class="turno-grid">
@@ -92,9 +94,10 @@
           </select>
         </div>
 
-        <div class="field full" id="campo-sector-otro-wrap" style="display:none">
+        <!-- Campo que aparece solo cuando se elige "Otros" -->
+        <div class="field full" id="campo-sector-otro-wrap" style="display:none;">
           <label>Especificar Sector</label>
-          <input type="text" id="campo-sector-otro">
+          <input type="text" id="campo-sector-otro" placeholder="Escribí el sector...">
         </div>
 
         <div class="field">
@@ -105,10 +108,15 @@
         <div class="field">
           <label>¿Fue solicitada?</label>
           <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="solicitada" value="si"> Sí</label>
-            <label class="radio-label"><input type="radio" name="solicitada" value="no" checked> No</label>
+            <label class="radio-label">
+              <input type="radio" name="solicitada" value="si"> Sí
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="solicitada" value="no" checked> No
+            </label>
           </div>
         </div>
+
       </div>
 
       <div class="field">
@@ -125,6 +133,7 @@
         </div>
       </div>
     </div>
+
     <button class="btn btn-green" id="btn-guardar-parte">REGISTRAR PARTE</button>
   </div>
 
@@ -133,6 +142,7 @@
   </div>
 </div>
 
+<!-- ══ PANTALLA SUPERVISOR / VISUALIZADOR ══ -->
 <div id="screen-vis" style="display:none;">
   <header>
     <div class="logo">
@@ -161,7 +171,9 @@
           <select id="filtro-sector">
             <option value="">Todos</option>
             <option value="Fabricación">Fabricación</option>
+            <option value="Cámara de Fermento">Cámara de Fermento</option>
             <option value="Horno">Horno</option>
+            <option value="Envase y Expediciones">Envase y Expediciones</option>
             <option value="Otros">Otros</option>
           </select>
         </div>
@@ -187,15 +199,20 @@
   </div>
 </div>
 
+<!-- ══ MODAL DETALLE ══ -->
 <div id="modal-overlay" class="modal-overlay" style="display:none">
   <div class="modal modal-parte">
     <div class="modal-header">
-      <div><div class="modal-title" id="modal-sector">—</div><div class="modal-sub" id="modal-meta">—</div></div>
+      <div>
+        <div class="modal-title" id="modal-sector">—</div>
+        <div class="modal-sub" id="modal-meta">—</div>
+      </div>
       <button class="btn-logout" onclick="cerrarModal()">✕</button>
     </div>
     <div class="modal-body">
       <div class="modal-field"><div class="modal-label">TAREA REALIZADA</div><div class="modal-value" id="modal-realizada">—</div></div>
       <div class="modal-field"><div class="modal-label">RESPONSABLE</div><div class="modal-value" id="modal-responsable">—</div></div>
+      <div class="modal-field"><div class="modal-label">¿FUE SOLICITADA?</div><div class="modal-value" id="modal-solicitada">—</div></div>
       <div class="modal-badges">
         <span class="modal-badge" id="modal-turno">—</span>
         <span class="modal-badge" id="modal-estado">—</span>
