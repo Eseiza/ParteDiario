@@ -15,8 +15,8 @@
 <div id="screen-login">
   <div class="login-box">
     <div class="login-brand">
-      <div class="login-title">ROMERO</div>
-      <div style="font-family:var(--font-head);font-size:18px;letter-spacing:3px;color:var(--text);line-height:1">PANIFICADOS</div>
+      <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png"
+           alt="Romero Panificados" class="login-logo">
     </div>
     <div class="login-sub">SISTEMA DE PARTES DIARIOS</div>
     <div class="login-tagline"><span>TI 2026</span></div>
@@ -48,7 +48,8 @@
 <div id="screen-carga" style="display:none;">
   <header>
     <div class="logo">
-      <div class="logo-text">ROMERO <span>MTTO.</span></div>
+      <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png"
+           alt="Romero Panificados" class="header-logo">
       <span class="logo-sub">Panel de Carga</span>
     </div>
     <div class="hbadge">
@@ -139,7 +140,8 @@
 <div id="screen-supervisor" style="display:none;">
   <header>
     <div class="logo">
-      <div class="logo-text">ROMERO <span>SUP.</span></div>
+      <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png"
+           alt="Romero Panificados" class="header-logo">
       <span class="logo-sub">Panel de Supervisión</span>
     </div>
     <div class="hbadge">
@@ -162,7 +164,6 @@
 
     <div class="card">
       <div class="form-grid">
-
         <div class="field">
           <label>Turno</label>
           <div class="turno-grid">
@@ -205,7 +206,6 @@
             <label class="radio-label"><input type="radio" name="resuelto" value="no" checked> No</label>
           </div>
         </div>
-
       </div>
 
       <div class="field mb-0">
@@ -223,84 +223,128 @@
 </div>
 
 <!-- ══════════════════════════════════
-     VISUALIZADOR
+     VISUALIZADOR — NUEVO LAYOUT
 ══════════════════════════════════ -->
 <div id="screen-vis" style="display:none;">
-  <header>
-    <div class="logo">
-      <div class="logo-text">ROMERO <span>PAN.</span></div>
-      <span class="logo-sub">Gestión & Control</span>
+
+  <!-- HEADER COMPACTO HORIZONTAL -->
+  <header class="vis-header">
+    <div class="vis-header-left">
+      <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png"
+           alt="Romero Panificados" class="header-logo">
     </div>
+    <nav class="vis-nav">
+      <div class="vis-nav-btn active" data-vtab="tab-partes">PARTES MTTO.</div>
+      <div class="vis-nav-btn" data-vtab="tab-novedades">NOVEDADES</div>
+      <div class="vis-nav-btn" data-vtab="tab-stats">ESTADÍSTICAS</div>
+    </nav>
     <div class="hbadge">
       <span id="vis-nombre">—</span>
-      <span class="role-tag vis">CONSULTA</span>
+      <span class="role-tag vis" id="vis-role-tag">CONSULTA</span>
       <button class="btn-logout" onclick="doLogout()">SALIR</button>
     </div>
   </header>
 
-  <div class="vis-tabs">
-    <div class="vis-tab active" data-tab="tab-partes">PARTES MTTO.</div>
-    <div class="vis-tab" data-tab="tab-novedades">NOVEDADES</div>
-    <div class="vis-tab" data-tab="tab-stats">ESTADÍSTICAS</div>
-  </div>
+  <!-- ── TAB: PARTES MTTO (layout 2 columnas) ── -->
+  <div id="tab-partes" class="vis-panel active">
+    <div class="vis-two-col">
 
-  <!-- Partes mtto -->
-  <div id="tab-partes" class="vis-tab-content app-content active">
-    <div class="card">
-      <div class="filtros-grid">
-        <div class="field mb-0"><label>Desde</label><input type="date" id="filtro-desde"></div>
-        <div class="field mb-0"><label>Hasta</label><input type="date" id="filtro-hasta"></div>
-        <div class="field mb-0">
-          <label>Sector</label>
-          <select id="filtro-sector">
-            <option value="">Todos</option>
-            <option value="Fabricación">Fabricación</option>
-            <option value="Cámara de Fermento">Cámara de Fermento</option>
-            <option value="Horno">Horno</option>
-            <option value="Envase y Expediciones">Envase y Expediciones</option>
-          </select>
+      <!-- columna principal -->
+      <div class="vis-col-main">
+        <!-- KPIs siempre visibles -->
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-val" id="kpi-total">0</div><div class="kpi-label">Total</div></div>
+          <div class="kpi kpi-ok"><div class="kpi-val" id="kpi-completados">0</div><div class="kpi-label">Completados</div></div>
+          <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-pendientes">0</div><div class="kpi-label">Pendientes</div></div>
+          <div class="kpi kpi-prog"><div class="kpi-val" id="kpi-progreso">0</div><div class="kpi-label">En Progreso</div></div>
         </div>
+
+        <!-- Filtros en línea compactos -->
+        <div class="filtros-inline">
+          <div class="fi-group"><label>Desde</label><input type="date" id="filtro-desde"></div>
+          <div class="fi-group"><label>Hasta</label><input type="date" id="filtro-hasta"></div>
+          <div class="fi-group">
+            <label>Sector</label>
+            <select id="filtro-sector">
+              <option value="">Todos</option>
+              <option value="Fabricación">Fabricación</option>
+              <option value="Cámara de Fermento">Cámara de Fermento</option>
+              <option value="Horno">Horno</option>
+              <option value="Envase y Expediciones">Envase y Expediciones</option>
+            </select>
+          </div>
+          <div class="fi-group">
+            <label>Estado</label>
+            <select id="filtro-estado">
+              <option value="">Todos</option>
+              <option value="completado">Completado</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="en-progreso">En Progreso</option>
+            </select>
+          </div>
+          <button class="btn btn-sm" id="btn-filtrar">FILTRAR</button>
+          <button class="btn btn-sm btn-outline" id="btn-limpiar">✕</button>
+        </div>
+
+        <div class="list-label">PARTES RECIENTES</div>
+        <div id="partes-list"></div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button class="btn btn-sm" id="btn-filtrar" style="flex:1">APLICAR FILTROS</button>
-        <button class="btn btn-sm btn-outline" id="btn-limpiar">LIMPIAR</button>
+
+      <!-- sidebar derecha -->
+      <aside class="vis-sidebar">
+        <div class="sidebar-block">
+          <div class="sidebar-label">POR SECTOR</div>
+          <div id="sidebar-sectores"></div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-label amber">ÚLTIMAS NOVEDADES</div>
+          <div id="sidebar-novedades-recientes"></div>
+          <div class="ver-todas" onclick="switchToTab('tab-novedades')">ver todas →</div>
+        </div>
+        <div class="sidebar-block">
+          <div class="sidebar-label">RESUMEN SEMANA</div>
+          <div id="sidebar-resumen"></div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- ── TAB: NOVEDADES ── -->
+  <div id="tab-novedades" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div id="novedades-vis-list"></div>
+    </div>
+  </div>
+
+  <!-- ── TAB: ESTADÍSTICAS ── -->
+  <div id="tab-stats" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="stats-block-title">PARTES DE MANTENIMIENTO</div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-val" id="kpi-total-s">0</div><div class="kpi-label">Total</div></div>
+        <div class="kpi kpi-ok"><div class="kpi-val" id="kpi-completados-s">0</div><div class="kpi-label">Completados</div></div>
+        <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-pendientes-s">0</div><div class="kpi-label">Pendientes</div></div>
+        <div class="kpi kpi-prog"><div class="kpi-val" id="kpi-progreso-s">0</div><div class="kpi-label">En Progreso</div></div>
+      </div>
+      <div class="charts-row">
+        <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-sectores"></canvas></div>
+        <div class="card chart-card"><div class="card-title">POR ESTADO</div><canvas id="chart-estados"></canvas></div>
+      </div>
+
+      <div class="stats-block-title" style="margin-top:32px">NOVEDADES DE SUPERVISIÓN</div>
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-val" id="kpi-nov-total">0</div><div class="kpi-label">Total</div></div>
+        <div class="kpi kpi-urg"><div class="kpi-val" id="kpi-nov-urgente">0</div><div class="kpi-label">Urgentes</div></div>
+        <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-nov-noresuelto">0</div><div class="kpi-label">Sin resolver</div></div>
+      </div>
+      <div class="charts-row">
+        <div class="card chart-card"><div class="card-title">POR TIPO</div><canvas id="chart-tipos"></canvas></div>
+        <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-nov-sectores"></canvas></div>
       </div>
     </div>
-    <div id="partes-list"></div>
   </div>
 
-  <!-- Novedades supervisión -->
-  <div id="tab-novedades" class="vis-tab-content app-content">
-    <div id="novedades-vis-list"></div>
-  </div>
-
-  <!-- Estadísticas -->
-  <div id="tab-stats" class="vis-tab-content app-content">
-
-    <div class="stats-block-title">PARTES DE MANTENIMIENTO</div>
-    <div class="kpi-row">
-      <div class="kpi"><div class="kpi-val" id="kpi-total">0</div><div class="kpi-label">Total</div></div>
-      <div class="kpi kpi-ok"><div class="kpi-val" id="kpi-completados">0</div><div class="kpi-label">Completados</div></div>
-      <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-pendientes">0</div><div class="kpi-label">Pendientes</div></div>
-      <div class="kpi kpi-prog"><div class="kpi-val" id="kpi-progreso">0</div><div class="kpi-label">En Progreso</div></div>
-    </div>
-    <div class="charts-row">
-      <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-sectores"></canvas></div>
-      <div class="card chart-card"><div class="card-title">POR ESTADO</div><canvas id="chart-estados"></canvas></div>
-    </div>
-
-    <div class="stats-block-title" style="margin-top:32px">NOVEDADES DE SUPERVISIÓN</div>
-    <div class="kpi-row">
-      <div class="kpi"><div class="kpi-val" id="kpi-nov-total">0</div><div class="kpi-label">Total</div></div>
-      <div class="kpi kpi-urg"><div class="kpi-val" id="kpi-nov-urgente">0</div><div class="kpi-label">Urgentes</div></div>
-      <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-nov-noresuelto">0</div><div class="kpi-label">Sin resolver</div></div>
-    </div>
-    <div class="charts-row">
-      <div class="card chart-card"><div class="card-title">POR TIPO</div><canvas id="chart-tipos"></canvas></div>
-      <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-nov-sectores"></canvas></div>
-    </div>
-
-  </div>
 </div>
 
 <!-- ══ MODAL PARTE ══ -->
