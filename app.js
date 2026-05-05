@@ -3,7 +3,7 @@ import {
     getFirestore, collection, addDoc, onSnapshot, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-// ══ CONFIG ══
+// ══ CONFIG — reemplazá con tus valores de Firebase Console ══
 const firebaseConfig = {
     apiKey:            "TU_API_KEY",
     authDomain:        "TU_PROJECT.firebaseapp.com",
@@ -19,6 +19,7 @@ const db  = getFirestore(app);
 const COL_PARTES    = "partes";
 const COL_NOVEDADES = "novedades";
 
+// ══ USUARIOS (reemplazar por Firebase Auth en producción) ══
 const USERS = {
     "mtto1":       { password: "mtto123",  role: "mantenimiento", nombre: "Técnico" },
     "supervisor1": { password: "super123", role: "supervisor",    nombre: "Producción" },
@@ -31,13 +32,16 @@ const state = {
     partes: [],
     partesFiltrados: [],
     novedades: [],
-    turnoActivo:   null,  // mtto
-    estadoActivo:  null,  // mtto
-    supTurno:      null,  // supervisor
-    supTipo:       null,  // supervisor
+    turnoActivo:   null,
+    estadoActivo:  null,
+    supTurno:      null,
+    supTipo:       null,
     unsub: null,
     unsubNov: null
 };
+
+// Paleta de colores para barras de sector
+const SECTOR_COLORS = ['accent', 'amb', 'grn', 'blu', 'accent', 'amb'];
 
 // ══ FECHA ══
 const hoy = new Date().toLocaleDateString('es-AR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
@@ -81,7 +85,6 @@ document.getElementById('login-btn').addEventListener('click', () => {
     } else {
         document.getElementById('screen-vis').style.display = 'flex';
         document.getElementById('vis-nombre').textContent = user.nombre;
-        document.querySelector('.role-tag.vis').textContent = state.role.toUpperCase();
         suscribirPartes();
         suscribirNovedadesVis();
     }
@@ -95,11 +98,12 @@ function suscribirPartes() {
         state.partesFiltrados = [...state.partes];
         renderPartes();
         actualizarKpis();
+        renderSidebar();
         renderCharts();
     });
 }
 
-// ══ FIRESTORE: NOVEDADES (supervisor, solo las suyas) ══
+// ══ FIRESTORE: NOVEDADES (supervisor) ══
 function suscribirNovedadesSup() {
     const q = query(collection(db, COL_NOVEDADES), orderBy('timestamp', 'desc'));
     state.unsubNov = onSnapshot(q, snap => {
@@ -115,6 +119,7 @@ function suscribirNovedadesVis() {
         state.novedades = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
         renderNovedadesVis();
         actualizarKpisNov();
+        renderSidebar();
         renderCharts();
     });
 }
@@ -144,7 +149,7 @@ function buildPartesHtml(arr) {
         </div>`).join('');
 }
 
-// ══ RENDER NOVEDADES SUPERVISOR (historial propio) ══
+// ══ RENDER NOVEDADES SUPERVISOR ══
 function renderHistorialSup() {
     const list = document.getElementById('historial-sup-list');
     if (!list) return;
@@ -177,8 +182,96 @@ function buildNovedadesHtml(arr) {
         </div>`).join('');
 }
 
+// ══ SIDEBAR VISUALIZADOR ══
+function renderSidebar() {
+    renderSidebarSectores();
+    renderSidebarNovedades();
+    renderSidebarResumen();
+}
+
+function renderSidebarSectores() {
+    const el = document.getElementById('sidebar-sectores');
+    if (!el) return;
+
+    const map = {};
+    state.partesFiltrados.forEach(p => { map[p.sector] = (map[p.sector] || 0) + 1; });
+    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+    const max = entries[0]?.[1] || 1;
+    const colorClasses = ['', 'amb', 'grn', 'blu'];
+
+    if (!entries.length) { el.innerHTML = emptyMsg('Sin datos.'); return; }
+
+    el.innerHTML = entries.map(([sector, count], i) => `
+        <div class="sb-bar-row">
+            <div class="sb-bar-label">
+                <span>${sector}</span><span>${count}</span>
+            </div>
+            <div class="sb-bar-track">
+                <div class="sb-bar-fill ${colorClasses[i % colorClasses.length]}"
+                     style="width:${Math.round((count / max) * 100)}%"></div>
+            </div>
+        </div>`).join('');
+}
+
+function renderSidebarNovedades() {
+    const el = document.getElementById('sidebar-novedades-recientes');
+    if (!el) return;
+
+    const recientes = state.novedades.slice(0, 4);
+    if (!recientes.length) { el.innerHTML = emptyMsg('Sin novedades.'); return; }
+
+    const tipoClass = { urgente:'u', problema:'p', observacion:'o' };
+    const tipoLabel = { urgente:'URGENTE', problema:'PROBLEMA', observacion:'OBS.' };
+
+    el.innerHTML = recientes.map(n => `
+        <div class="sb-nov ${tipoClass[n.tipo] || ''}" onclick="verNovedad('${n.firestoreId}')">
+            <div class="sb-nov-head">
+                <span class="sb-nov-sector">${n.sector}</span>
+                <span class="sb-nov-badge ${tipoClass[n.tipo] || ''}">${tipoLabel[n.tipo] || n.tipo}</span>
+            </div>
+            <div class="sb-nov-meta">${n.fechaCorta} · ${(n.turno||'').toUpperCase()}</div>
+        </div>`).join('');
+}
+
+function renderSidebarResumen() {
+    const el = document.getElementById('sidebar-resumen');
+    if (!el) return;
+
+    // Calcular datos de la semana actual
+    const hoy = new Date();
+    const inicioSemana = new Date(hoy);
+    inicioSemana.setDate(hoy.getDate() - hoy.getDay());
+    inicioSemana.setHours(0, 0, 0, 0);
+
+    const partesSemanales  = state.partes.filter(p => p.timestamp >= inicioSemana.getTime());
+    const novSemanales     = state.novedades.filter(n => n.timestamp >= inicioSemana.getTime());
+    const urgentes         = novSemanales.filter(n => n.tipo === 'urgente' && n.resuelto === 'no');
+    const resueltas        = novSemanales.filter(n => n.resuelto === 'si').length;
+    const tasaResolucion   = novSemanales.length
+        ? Math.round((resueltas / novSemanales.length) * 100)
+        : 0;
+
+    el.innerHTML = `
+        <div class="sb-stat-row">
+            <span class="sb-stat-name">Partes esta semana</span>
+            <span class="sb-stat-val">${partesSemanales.length}</span>
+        </div>
+        <div class="sb-stat-row">
+            <span class="sb-stat-name">Novedades</span>
+            <span class="sb-stat-val">${novSemanales.length}</span>
+        </div>
+        <div class="sb-stat-row">
+            <span class="sb-stat-name">Urgentes sin resolver</span>
+            <span class="sb-stat-val" style="color:#ff6b57">${urgentes.length}</span>
+        </div>
+        <div class="sb-stat-row">
+            <span class="sb-stat-name">Tasa de resolución</span>
+            <span class="sb-stat-val" style="color:#63b167">${tasaResolucion}%</span>
+        </div>`;
+}
+
 function emptyMsg(txt) {
-    return `<p style="color:var(--muted);font-family:var(--font-mono);font-size:12px;padding:20px 0">${txt}</p>`;
+    return `<p style="color:var(--muted);font-family:var(--font-mono);font-size:12px;padding:16px 0">${txt}</p>`;
 }
 
 // ══ TURNO / ESTADO (MTTO) ══
@@ -276,32 +369,80 @@ document.getElementById('btn-guardar-novedad')?.addEventListener('click', async 
     } catch (e) { showToast('Error al guardar', true); console.error(e); }
 });
 
-// ══ FILTROS (VISUALIZADOR) ══
-document.getElementById('btn-filtrar')?.addEventListener('click', () => {
+// ══ FILTROS VISUALIZADOR (ahora con estado) ══
+document.getElementById('btn-filtrar')?.addEventListener('click', aplicarFiltros);
+document.getElementById('btn-limpiar')?.addEventListener('click', () => {
+    ['filtro-desde','filtro-hasta'].forEach(id => document.getElementById(id).value = '');
+    ['filtro-sector','filtro-estado'].forEach(id => document.getElementById(id).value = '');
+    state.partesFiltrados = [...state.partes];
+    renderPartes();
+    actualizarKpis();
+    renderSidebar();
+    renderCharts();
+});
+
+function aplicarFiltros() {
     const desde  = document.getElementById('filtro-desde').value;
     const hasta  = document.getElementById('filtro-hasta').value;
     const sector = document.getElementById('filtro-sector').value;
+    const estado = document.getElementById('filtro-estado')?.value || '';
 
     state.partesFiltrados = state.partes.filter(p => {
         const fecha = new Date(p.timestamp);
         if (desde && fecha < new Date(desde)) return false;
         if (hasta && fecha > new Date(hasta + 'T23:59:59')) return false;
         if (sector && p.sector !== sector) return false;
+        if (estado && p.estado !== estado) return false;
         return true;
     });
     renderPartes();
     actualizarKpis();
+    renderSidebar();
     renderCharts();
+}
+
+// ══ NAVEGACIÓN VISUALIZADOR (nav horizontal) ══
+document.querySelectorAll('.vis-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.vis-nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = btn.dataset.vtab;
+        document.querySelectorAll('.vis-panel').forEach(p => {
+            p.style.display = 'none';
+            p.classList.remove('active');
+        });
+        const target = document.getElementById(tabId);
+        if (target) {
+            target.style.display = 'block';
+            target.classList.add('active');
+        }
+        // Redibujar charts al entrar a estadísticas
+        if (tabId === 'tab-stats') {
+            actualizarKpisStats();
+            renderCharts();
+        }
+    });
 });
 
-document.getElementById('btn-limpiar')?.addEventListener('click', () => {
-    document.getElementById('filtro-desde').value  = '';
-    document.getElementById('filtro-hasta').value  = '';
-    document.getElementById('filtro-sector').value = '';
-    state.partesFiltrados = [...state.partes];
-    renderPartes();
-    actualizarKpis();
-    renderCharts();
+// Llamado desde sidebar "ver todas →"
+window.switchToTab = (tabId) => {
+    const btn = document.querySelector(`.vis-nav-btn[data-vtab="${tabId}"]`);
+    if (btn) btn.click();
+};
+
+// ══ TABS (Mantenimiento / Supervisor — sin cambios) ══
+document.querySelectorAll('.vis-tab').forEach(tab => {
+    tab.addEventListener('click', e => {
+        const container = e.target.closest('.vis-tabs').parentElement;
+        container.querySelectorAll('.vis-tab').forEach(t => t.classList.remove('active'));
+        container.querySelectorAll('.vis-tab-content').forEach(c => {
+            c.style.display = 'none';
+            c.classList.remove('active');
+        });
+        e.target.classList.add('active');
+        const target = document.getElementById(e.target.dataset.tab);
+        if (target) { target.style.display = 'block'; target.classList.add('active'); }
+    });
 });
 
 // ══ UTILS ══
@@ -368,15 +509,31 @@ window.verNovedad = (id) => {
 };
 window.cerrarModalNov = () => document.getElementById('modal-nov-overlay').style.display = 'none';
 
-// ══ KPIs ══
+// ══ KPIs (panel partes y stats) ══
 function actualizarKpis() {
     const el = id => document.getElementById(id);
-    if (!el('kpi-total')) return;
     const arr = state.partesFiltrados;
-    el('kpi-total').textContent       = arr.length;
-    el('kpi-completados').textContent = arr.filter(x => x.estado === 'completado').length;
-    el('kpi-pendientes').textContent  = arr.filter(x => x.estado === 'pendiente').length;
-    el('kpi-progreso').textContent    = arr.filter(x => x.estado === 'en-progreso').length;
+
+    // KPIs en panel partes
+    if (el('kpi-total')) {
+        el('kpi-total').textContent       = arr.length;
+        el('kpi-completados').textContent = arr.filter(x => x.estado === 'completado').length;
+        el('kpi-pendientes').textContent  = arr.filter(x => x.estado === 'pendiente').length;
+        el('kpi-progreso').textContent    = arr.filter(x => x.estado === 'en-progreso').length;
+    }
+    actualizarKpisStats();
+}
+
+function actualizarKpisStats() {
+    const el = id => document.getElementById(id);
+    const arr = state.partesFiltrados;
+
+    if (el('kpi-total-s')) {
+        el('kpi-total-s').textContent       = arr.length;
+        el('kpi-completados-s').textContent = arr.filter(x => x.estado === 'completado').length;
+        el('kpi-pendientes-s').textContent  = arr.filter(x => x.estado === 'pendiente').length;
+        el('kpi-progreso-s').textContent    = arr.filter(x => x.estado === 'en-progreso').length;
+    }
 }
 
 function actualizarKpisNov() {
@@ -392,7 +549,6 @@ function actualizarKpisNov() {
 let charts = {};
 
 function renderCharts() {
-    // destruir todos los existentes
     Object.values(charts).forEach(c => c.destroy());
     charts = {};
 
@@ -400,7 +556,6 @@ function renderCharts() {
     const tickStyle = { color: '#8e9297', font: { family: 'DM Mono', size: 10 } };
     const legendStyle = { labels: { color: '#8e9297', font: { family: 'DM Mono', size: 11 }, padding: 16, boxWidth: 12 } };
 
-    // — Por sector (partes) —
     const cSec = document.getElementById('chart-sectores');
     if (cSec) {
         const map = {};
@@ -421,7 +576,6 @@ function renderCharts() {
         });
     }
 
-    // — Por estado (partes) —
     const cEst = document.getElementById('chart-estados');
     if (cEst) {
         const vals = [
@@ -439,7 +593,6 @@ function renderCharts() {
         });
     }
 
-    // — Por tipo (novedades) —
     const cTipo = document.getElementById('chart-tipos');
     if (cTipo) {
         const vals = [
@@ -457,7 +610,6 @@ function renderCharts() {
         });
     }
 
-    // — Por sector (novedades) —
     const cNovSec = document.getElementById('chart-nov-sectores');
     if (cNovSec) {
         const map = {};
@@ -478,18 +630,3 @@ function renderCharts() {
         });
     }
 }
-
-// ══ TABS ══
-document.querySelectorAll('.vis-tab').forEach(tab => {
-    tab.addEventListener('click', e => {
-        const container = e.target.closest('.vis-tabs').parentElement;
-        container.querySelectorAll('.vis-tab').forEach(t => t.classList.remove('active'));
-        container.querySelectorAll('.vis-tab-content').forEach(c => {
-            c.style.display = 'none';
-            c.classList.remove('active');
-        });
-        e.target.classList.add('active');
-        const target = document.getElementById(e.target.dataset.tab);
-        if (target) { target.style.display = 'block'; target.classList.add('active'); }
-    });
-});
