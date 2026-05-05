@@ -9,6 +9,9 @@
 </head>
 <body>
 
+<!-- ══════════════════════════════════
+     LOGIN
+══════════════════════════════════ -->
 <div id="screen-login">
   <div class="login-box">
     <div class="login-brand">
@@ -17,19 +20,13 @@
     </div>
     <div class="login-sub">SISTEMA DE PARTES DIARIOS</div>
     <div class="login-tagline"><span>TI 2026</span></div>
-    
+
     <div class="field">
       <label>Seleccioná tu rol</label>
       <div class="role-grid">
-        <div class="role-btn" data-role="mantenimiento">
-          <span class="r-name">MANTENIMIENTO</span>
-        </div>
-        <div class="role-btn" data-role="supervisor">
-          <span class="r-name">SUPERVISOR</span>
-        </div>
-        <div class="role-btn" data-role="visualizador">
-          <span class="r-name">VISUALIZADOR</span>
-        </div>
+        <div class="role-btn" data-role="mantenimiento"><span class="r-name">MANTENIMIENTO</span></div>
+        <div class="role-btn" data-role="supervisor"><span class="r-name">SUPERVISOR</span></div>
+        <div class="role-btn" data-role="visualizador"><span class="r-name">VISUALIZADOR</span></div>
       </div>
     </div>
 
@@ -45,7 +42,9 @@
   </div>
 </div>
 
-<!-- ══ PANTALLA MANTENIMIENTO ══ -->
+<!-- ══════════════════════════════════
+     MANTENIMIENTO
+══════════════════════════════════ -->
 <div id="screen-carga" style="display:none;">
   <header>
     <div class="logo">
@@ -54,7 +53,7 @@
     </div>
     <div class="hbadge">
       <span id="carga-nombre">—</span>
-      <span class="role-tag mtto" id="carga-role-tag">TÉCNICO</span>
+      <span class="role-tag mtto">TÉCNICO</span>
       <button class="btn-logout" onclick="doLogout()">SALIR</button>
     </div>
   </header>
@@ -72,7 +71,6 @@
 
     <div class="card">
       <div class="form-grid">
-
         <div class="field">
           <label>Turno</label>
           <div class="turno-grid">
@@ -94,7 +92,6 @@
           </select>
         </div>
 
-        <!-- Campo que aparece solo cuando se elige "Otros" -->
         <div class="field full" id="campo-sector-otro-wrap" style="display:none;">
           <label>Especificar Sector</label>
           <input type="text" id="campo-sector-otro" placeholder="Escribí el sector...">
@@ -108,15 +105,10 @@
         <div class="field">
           <label>¿Fue solicitada?</label>
           <div class="radio-group">
-            <label class="radio-label">
-              <input type="radio" name="solicitada" value="si"> Sí
-            </label>
-            <label class="radio-label">
-              <input type="radio" name="solicitada" value="no" checked> No
-            </label>
+            <label class="radio-label"><input type="radio" name="solicitada" value="si"> Sí</label>
+            <label class="radio-label"><input type="radio" name="solicitada" value="no" checked> No</label>
           </div>
         </div>
-
       </div>
 
       <div class="field">
@@ -133,7 +125,6 @@
         </div>
       </div>
     </div>
-
     <button class="btn btn-green" id="btn-guardar-parte">REGISTRAR PARTE</button>
   </div>
 
@@ -142,7 +133,98 @@
   </div>
 </div>
 
-<!-- ══ PANTALLA SUPERVISOR / VISUALIZADOR ══ -->
+<!-- ══════════════════════════════════
+     SUPERVISOR
+══════════════════════════════════ -->
+<div id="screen-supervisor" style="display:none;">
+  <header>
+    <div class="logo">
+      <div class="logo-text">ROMERO <span>SUP.</span></div>
+      <span class="logo-sub">Panel de Supervisión</span>
+    </div>
+    <div class="hbadge">
+      <span id="sup-nombre">—</span>
+      <span class="role-tag sup">SUPERVISOR</span>
+      <button class="btn-logout" onclick="doLogout()">SALIR</button>
+    </div>
+  </header>
+
+  <div class="vis-tabs">
+    <div class="vis-tab active" data-tab="tab-sup-nuevo">NUEVA NOVEDAD</div>
+    <div class="vis-tab" data-tab="tab-sup-historial">HISTORIAL</div>
+  </div>
+
+  <div id="tab-sup-nuevo" class="vis-tab-content app-content active">
+    <div class="section-header">
+      <div class="section-title">NOVEDAD DE TURNO</div>
+      <div class="fecha-badge" id="fecha-sup">—</div>
+    </div>
+
+    <div class="card">
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Turno</label>
+          <div class="turno-grid">
+            <div class="turno-btn turno-sup" data-turno="mañana">MAÑANA</div>
+            <div class="turno-btn turno-sup" data-turno="tarde">TARDE</div>
+            <div class="turno-btn turno-sup" data-turno="noche">NOCHE</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Sector</label>
+          <select id="sup-sector">
+            <option value="">Seleccionar Sector</option>
+            <option value="Fabricación">Fabricación</option>
+            <option value="Cámara de Fermento">Cámara de Fermento</option>
+            <option value="Horno">Horno</option>
+            <option value="Envase y Expediciones">Envase y Expediciones</option>
+            <option value="General">General</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label>Tipo de Novedad</label>
+          <div class="tipo-grid">
+            <div class="tipo-btn" data-tipo="problema">⚠ PROBLEMA</div>
+            <div class="tipo-btn" data-tipo="observacion">👁 OBSERVACIÓN</div>
+            <div class="tipo-btn" data-tipo="urgente">🔴 URGENTE</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Responsable de Turno</label>
+          <input type="text" id="sup-responsable" placeholder="Nombre del responsable">
+        </div>
+
+        <div class="field">
+          <label>¿Se resolvió en el turno?</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="resuelto" value="si"> Sí</label>
+            <label class="radio-label"><input type="radio" name="resuelto" value="no" checked> No</label>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="field mb-0">
+        <label>Descripción</label>
+        <textarea id="sup-descripcion" placeholder="Describí la situación con el mayor detalle posible..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-amber" id="btn-guardar-novedad">REGISTRAR NOVEDAD</button>
+  </div>
+
+  <div id="tab-sup-historial" class="vis-tab-content app-content">
+    <div id="historial-sup-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     VISUALIZADOR
+══════════════════════════════════ -->
 <div id="screen-vis" style="display:none;">
   <header>
     <div class="logo">
@@ -157,10 +239,12 @@
   </header>
 
   <div class="vis-tabs">
-    <div class="vis-tab active" data-tab="tab-partes">REGISTROS</div>
+    <div class="vis-tab active" data-tab="tab-partes">PARTES MTTO.</div>
+    <div class="vis-tab" data-tab="tab-novedades">NOVEDADES</div>
     <div class="vis-tab" data-tab="tab-stats">ESTADÍSTICAS</div>
   </div>
 
+  <!-- Partes mtto -->
   <div id="tab-partes" class="vis-tab-content app-content active">
     <div class="card">
       <div class="filtros-grid">
@@ -174,7 +258,6 @@
             <option value="Cámara de Fermento">Cámara de Fermento</option>
             <option value="Horno">Horno</option>
             <option value="Envase y Expediciones">Envase y Expediciones</option>
-            <option value="Otros">Otros</option>
           </select>
         </div>
       </div>
@@ -186,20 +269,41 @@
     <div id="partes-list"></div>
   </div>
 
+  <!-- Novedades supervisión -->
+  <div id="tab-novedades" class="vis-tab-content app-content">
+    <div id="novedades-vis-list"></div>
+  </div>
+
+  <!-- Estadísticas -->
   <div id="tab-stats" class="vis-tab-content app-content">
+
+    <div class="stats-block-title">PARTES DE MANTENIMIENTO</div>
     <div class="kpi-row">
       <div class="kpi"><div class="kpi-val" id="kpi-total">0</div><div class="kpi-label">Total</div></div>
-      <div class="kpi green"><div class="kpi-val" id="kpi-completados">0</div><div class="kpi-label">OK</div></div>
-      <div class="kpi red"><div class="kpi-val" id="kpi-pendientes">0</div><div class="kpi-label">Pend</div></div>
+      <div class="kpi kpi-ok"><div class="kpi-val" id="kpi-completados">0</div><div class="kpi-label">Completados</div></div>
+      <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-pendientes">0</div><div class="kpi-label">Pendientes</div></div>
+      <div class="kpi kpi-prog"><div class="kpi-val" id="kpi-progreso">0</div><div class="kpi-label">En Progreso</div></div>
     </div>
-    <div class="charts-grid">
-      <div class="card"><div class="card-title">Por Sector</div><canvas id="chart-sectores"></canvas></div>
-      <div class="card"><div class="card-title">Por Estado</div><canvas id="chart-estados"></canvas></div>
+    <div class="charts-row">
+      <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-sectores"></canvas></div>
+      <div class="card chart-card"><div class="card-title">POR ESTADO</div><canvas id="chart-estados"></canvas></div>
     </div>
+
+    <div class="stats-block-title" style="margin-top:32px">NOVEDADES DE SUPERVISIÓN</div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-val" id="kpi-nov-total">0</div><div class="kpi-label">Total</div></div>
+      <div class="kpi kpi-urg"><div class="kpi-val" id="kpi-nov-urgente">0</div><div class="kpi-label">Urgentes</div></div>
+      <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-nov-noresuelto">0</div><div class="kpi-label">Sin resolver</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="card chart-card"><div class="card-title">POR TIPO</div><canvas id="chart-tipos"></canvas></div>
+      <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-nov-sectores"></canvas></div>
+    </div>
+
   </div>
 </div>
 
-<!-- ══ MODAL DETALLE ══ -->
+<!-- ══ MODAL PARTE ══ -->
 <div id="modal-overlay" class="modal-overlay" style="display:none">
   <div class="modal modal-parte">
     <div class="modal-header">
@@ -216,6 +320,28 @@
       <div class="modal-badges">
         <span class="modal-badge" id="modal-turno">—</span>
         <span class="modal-badge" id="modal-estado">—</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL NOVEDAD ══ -->
+<div id="modal-nov-overlay" class="modal-overlay" style="display:none">
+  <div class="modal modal-parte">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-nov-sector">—</div>
+        <div class="modal-sub" id="modal-nov-meta">—</div>
+      </div>
+      <button class="btn-logout" onclick="cerrarModalNov()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field"><div class="modal-label">DESCRIPCIÓN</div><div class="modal-value" id="modal-nov-desc">—</div></div>
+      <div class="modal-field"><div class="modal-label">RESPONSABLE DE TURNO</div><div class="modal-value" id="modal-nov-resp">—</div></div>
+      <div class="modal-field"><div class="modal-label">¿SE RESOLVIÓ EN EL TURNO?</div><div class="modal-value" id="modal-nov-resuelto">—</div></div>
+      <div class="modal-badges">
+        <span class="modal-badge" id="modal-nov-turno">—</span>
+        <span class="modal-badge modal-badge-tipo" id="modal-nov-tipo">—</span>
       </div>
     </div>
   </div>
