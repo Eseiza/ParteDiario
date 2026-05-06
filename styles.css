@@ -97,20 +97,63 @@ select { cursor: pointer; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
 
-/* ══ HEADER — Mantenimiento / Supervisor ══ */
+/* ══ HEADER UNIFICADO — Mantenimiento / Supervisor / Visualizador ══ */
 header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 12px 20px;
+  background: #161616;
+  border-bottom: 1px solid #2a2a2a;
+  padding: 0 20px;
+  height: 52px;
   display: flex;
-  justify-content: space-between;
+  flex-direction: row;
   align-items: center;
+  gap: 0;
   position: sticky;
   top: 0;
   z-index: 10;
+  width: 100%;
 }
-.logo { display: flex; flex-direction: column; gap: 3px; }
-.logo-sub { font-size: 9px; font-family: var(--font-mono); color: var(--muted); }
+.logo { display: flex; align-items: center; flex-shrink: 0; margin-right: 20px; }
+.logo-sub { display: none; }
+
+/* Tabs integradas dentro del header */
+.vis-tabs {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  background: transparent;
+  border-bottom: none;
+  height: 52px;
+  align-items: stretch;
+}
+.vis-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 24px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: .15s;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex: unset;
+}
+.vis-tab:hover:not(.active) { color: var(--text); }
+.vis-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: transparent; }
+#screen-supervisor .vis-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+/* Badge siempre al extremo derecho del header */
+header .hbadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
 
 /* ══ SCREEN VIS — RESET CRÍTICO ══ */
 #screen-vis {
