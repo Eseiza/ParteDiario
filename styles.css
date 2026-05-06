@@ -112,27 +112,50 @@ header {
 .logo { display: flex; flex-direction: column; gap: 3px; }
 .logo-sub { font-size: 9px; font-family: var(--font-mono); color: var(--muted); }
 
-/* ══ HEADER — Visualizador (horizontal compacto) ══ */
+/* ══ SCREEN VIS — RESET CRÍTICO ══ */
+#screen-vis {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ══ HEADER — Visualizador (una sola línea horizontal) ══ */
 .vis-header {
   background: #161616;
   border-bottom: 1px solid #2a2a2a;
-  padding: 10px 20px;
+  padding: 0 20px;
+  height: 52px;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   position: sticky;
   top: 0;
   z-index: 10;
+  width: 100%;
+  overflow: hidden;
 }
-.vis-header-left { display: flex; align-items: center; }
+
+.vis-header-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .vis-nav {
   display: flex;
+  flex-direction: row;
   gap: 2px;
   flex: 1;
   justify-content: center;
+  height: 100%;
 }
+
 .vis-nav-btn {
-  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 18px;
   font-size: 10px;
   letter-spacing: 1.5px;
   font-family: var(--font-mono);
@@ -142,9 +165,19 @@ header {
   transition: .15s;
   text-transform: uppercase;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .vis-nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 .vis-nav-btn:hover:not(.active) { color: var(--text); }
+
+/* hbadge en vis-header siempre al extremo derecho */
+.vis-header .hbadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
 
 /* ══ BADGE / LOGOUT ══ */
 .hbadge { display: flex; align-items: center; gap: 8px; }
@@ -165,14 +198,15 @@ header {
 .vis-tab-content { display: none; }
 .vis-tab-content.active { display: block; }
 
-/* ══ LAYOUT VISUALIZADOR — 2 columnas ══ */
-.vis-panel { display: none; }
+/* ══ LAYOUT VISUALIZADOR — paneles y 2 columnas ══ */
+.vis-panel { display: none; width: 100%; }
 .vis-panel.active { display: block; }
 
 .vis-two-col {
   display: grid;
   grid-template-columns: 1fr 280px;
-  min-height: calc(100vh - 57px);
+  min-height: calc(100vh - 52px);
+  width: 100%;
 }
 @media (max-width: 900px) {
   .vis-two-col { grid-template-columns: 1fr; }
@@ -183,11 +217,13 @@ header {
   padding: 16px 20px;
   border-right: 1px solid #2a2a2a;
   overflow-y: auto;
+  min-width: 0;
 }
 .vis-sidebar {
   padding: 16px;
   background: #1c1c1c;
   overflow-y: auto;
+  min-width: 0;
 }
 
 /* ══ FILTROS INLINE (Visualizador) ══ */
