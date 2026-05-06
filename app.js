@@ -21,9 +21,9 @@ const COL_NOVEDADES = "novedades";
 
 // ══ USUARIOS (reemplazar por Firebase Auth en producción) ══
 const USERS = {
-    "mtto1":       { password: "mtto123",  role: "mantenimiento", nombre: "Técnico" },
-    "supervisor1": { password: "super123", role: "supervisor",    nombre: "Producción" },
-    "admin":       { password: "123",      role: "visualizador",  nombre: "Admin Romero" }
+    "mtto1":       { password: "mtto123",  role: "mantenimiento", nombre: "" },
+    "supervisor1": { password: "super123", role: "supervisor",    nombre: "" },
+    "admin":       { password: "123",      role: "visualizador",  nombre: "" }
 };
 
 const state = {
@@ -166,7 +166,7 @@ function renderNovedadesVis() {
 
 function buildNovedadesHtml(arr) {
     if (!arr.length) return emptyMsg('Sin novedades.');
-    const tipoLabel = { problema:'⚠ PROBLEMA', observacion:'👁 OBSERVACIÓN', urgente:'🔴 URGENTE' };
+    const tipoLabel = { problema:'⚠ PROBLEMA', observacion:'OBSERVACIÓN', urgente:'🔴 URGENTE' };
     return arr.map(n => `
         <div class="novedad-card tipo-${n.tipo}" onclick="verNovedad('${n.firestoreId}')">
             <div class="novedad-header">
