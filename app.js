@@ -83,7 +83,8 @@ document.getElementById('login-btn').addEventListener('click', () => {
         suscribirNovedadesSup();
 
     } else {
-        document.getElementById('screen-vis').style.display = 'flex';
+        // ══ FIX CRÍTICO: 'block' en lugar de 'flex' ══
+        document.getElementById('screen-vis').style.display = 'block';
         document.getElementById('vis-nombre').textContent = user.nombre;
         suscribirPartes();
         suscribirNovedadesVis();
@@ -237,7 +238,6 @@ function renderSidebarResumen() {
     const el = document.getElementById('sidebar-resumen');
     if (!el) return;
 
-    // Calcular datos de la semana actual
     const hoy = new Date();
     const inicioSemana = new Date(hoy);
     inicioSemana.setDate(hoy.getDate() - hoy.getDay());
@@ -369,7 +369,7 @@ document.getElementById('btn-guardar-novedad')?.addEventListener('click', async 
     } catch (e) { showToast('Error al guardar', true); console.error(e); }
 });
 
-// ══ FILTROS VISUALIZADOR (ahora con estado) ══
+// ══ FILTROS VISUALIZADOR ══
 document.getElementById('btn-filtrar')?.addEventListener('click', aplicarFiltros);
 document.getElementById('btn-limpiar')?.addEventListener('click', () => {
     ['filtro-desde','filtro-hasta'].forEach(id => document.getElementById(id).value = '');
@@ -401,7 +401,7 @@ function aplicarFiltros() {
     renderCharts();
 }
 
-// ══ NAVEGACIÓN VISUALIZADOR (nav horizontal) ══
+// ══ NAVEGACIÓN VISUALIZADOR ══
 document.querySelectorAll('.vis-nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.vis-nav-btn').forEach(b => b.classList.remove('active'));
@@ -416,7 +416,6 @@ document.querySelectorAll('.vis-nav-btn').forEach(btn => {
             target.style.display = 'block';
             target.classList.add('active');
         }
-        // Redibujar charts al entrar a estadísticas
         if (tabId === 'tab-stats') {
             actualizarKpisStats();
             renderCharts();
@@ -424,13 +423,12 @@ document.querySelectorAll('.vis-nav-btn').forEach(btn => {
     });
 });
 
-// Llamado desde sidebar "ver todas →"
 window.switchToTab = (tabId) => {
     const btn = document.querySelector(`.vis-nav-btn[data-vtab="${tabId}"]`);
     if (btn) btn.click();
 };
 
-// ══ TABS (Mantenimiento / Supervisor — sin cambios) ══
+// ══ TABS (Mantenimiento / Supervisor) ══
 document.querySelectorAll('.vis-tab').forEach(tab => {
     tab.addEventListener('click', e => {
         const container = e.target.closest('.vis-tabs').parentElement;
@@ -509,12 +507,11 @@ window.verNovedad = (id) => {
 };
 window.cerrarModalNov = () => document.getElementById('modal-nov-overlay').style.display = 'none';
 
-// ══ KPIs (panel partes y stats) ══
+// ══ KPIs ══
 function actualizarKpis() {
     const el = id => document.getElementById(id);
     const arr = state.partesFiltrados;
 
-    // KPIs en panel partes
     if (el('kpi-total')) {
         el('kpi-total').textContent       = arr.length;
         el('kpi-completados').textContent = arr.filter(x => x.estado === 'completado').length;
