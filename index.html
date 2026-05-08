@@ -45,15 +45,16 @@
      MANTENIMIENTO
 ══════════════════════════════════ -->
 <div id="screen-carga" style="display:none;">
-  <header>
-    <div class="logo">
+  <!-- HEADER — mismo estilo que visualizador -->
+  <header class="vis-header">
+    <div class="vis-header-left">
       <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png"
            alt="Romero Panificados" class="header-logo">
     </div>
-    <div class="vis-tabs">
-      <div class="vis-tab active" data-tab="tab-nuevo">NUEVO PARTE</div>
-      <div class="vis-tab" data-tab="tab-historial-carga">HISTORIAL</div>
-    </div>
+    <nav class="vis-nav">
+      <div class="vis-nav-btn active" data-ctab="tab-nuevo">NUEVO PARTE</div>
+      <div class="vis-nav-btn" data-ctab="tab-historial-carga">HISTORIAL</div>
+    </nav>
     <div class="hbadge">
       <span id="carga-nombre">—</span>
       <span class="role-tag mtto">TÉCNICO</span>
@@ -61,73 +62,78 @@
     </div>
   </header>
 
-  <div id="tab-nuevo" class="vis-tab-content app-content active">
-    <div class="section-header">
-      <div class="section-title">CARGA TÉCNICA</div>
-      <div class="fecha-badge" id="fecha-actual">—</div>
-    </div>
+  <div id="tab-nuevo" class="vis-panel active">
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title">CARGA TÉCNICA</div>
+        <div class="fecha-badge" id="fecha-actual">—</div>
+      </div>
 
-    <div class="card">
-      <div class="form-grid">
-        <div class="field">
-          <label>Turno</label>
-          <div class="turno-grid">
-            <div class="turno-btn" data-turno="mañana">MAÑANA</div>
-            <div class="turno-btn" data-turno="tarde">TARDE</div>
-            <div class="turno-btn" data-turno="noche">NOCHE</div>
+      <div class="card">
+        <div class="form-grid">
+          <div class="field">
+            <label>Turno</label>
+            <div class="turno-grid">
+              <div class="turno-btn" data-turno="mañana">MAÑANA</div>
+              <div class="turno-btn" data-turno="tarde">TARDE</div>
+              <div class="turno-btn" data-turno="noche">NOCHE</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Sector</label>
+            <select id="campo-sector">
+              <option value="">Seleccionar Sector</option>
+              <option value="Fabricación">Fabricación</option>
+              <option value="Cámara de Fermento">Cámara de Fermento</option>
+              <option value="Horno">Horno</option>
+              <option value="Enfriador">Enfriador</option>
+              <option value="Envase">Envase</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+
+          <div class="field full" id="campo-sector-otro-wrap" style="display:none;">
+            <label>Especificar Sector</label>
+            <input type="text" id="campo-sector-otro" placeholder="Escribí el sector...">
+          </div>
+
+          <div class="field">
+            <label>Persona Responsable</label>
+            <input type="text" id="campo-responsable" placeholder="Nombre">
+          </div>
+
+          <div class="field">
+            <label>¿Fue solicitada?</label>
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="solicitada" value="si"> Sí</label>
+              <label class="radio-label"><input type="radio" name="solicitada" value="no" checked> No</label>
+            </div>
           </div>
         </div>
 
         <div class="field">
-          <label>Sector</label>
-          <select id="campo-sector">
-            <option value="">Seleccionar Sector</option>
-            <option value="Fabricación">Fabricación</option>
-            <option value="Cámara de Fermento">Cámara de Fermento</option>
-            <option value="Horno">Horno</option>
-            <option value="Envase y Expediciones">Envase y Expediciones</option>
-            <option value="Otros">Otros</option>
-          </select>
+          <label>Tarea Realizada</label>
+          <textarea id="campo-realizada" placeholder="Detalle técnico..."></textarea>
         </div>
 
-        <div class="field full" id="campo-sector-otro-wrap" style="display:none;">
-          <label>Especificar Sector</label>
-          <input type="text" id="campo-sector-otro" placeholder="Escribí el sector...">
-        </div>
-
-        <div class="field">
-          <label>Persona Responsable</label>
-          <input type="text" id="campo-responsable" placeholder="Nombre">
-        </div>
-
-        <div class="field">
-          <label>¿Fue solicitada?</label>
-          <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="solicitada" value="si"> Sí</label>
-            <label class="radio-label"><input type="radio" name="solicitada" value="no" checked> No</label>
+        <div class="field mb-0">
+          <label>Estado del Trabajo</label>
+          <div class="estado-grid">
+            <div class="estado-btn" data-estado="completado">COMPLETADO</div>
+            <div class="estado-btn" data-estado="en-proceso">EN PROCESO</div>
+            <div class="estado-btn" data-estado="pendiente">PENDIENTE</div>
           </div>
         </div>
       </div>
-
-      <div class="field">
-        <label>Tarea Realizada</label>
-        <textarea id="campo-realizada" placeholder="Detalle técnico..."></textarea>
-      </div>
-
-      <div class="field mb-0">
-        <label>Estado del Trabajo</label>
-        <div class="estado-grid">
-          <div class="estado-btn" data-estado="completado">COMPLETADO</div>
-          <div class="estado-btn" data-estado="pendiente">PENDIENTE</div>
-          <div class="estado-btn" data-estado="en-progreso">EN PROGRESO</div>
-        </div>
-      </div>
+      <button class="btn btn-green" id="btn-guardar-parte">REGISTRAR PARTE</button>
     </div>
-    <button class="btn btn-green" id="btn-guardar-parte">REGISTRAR PARTE</button>
   </div>
 
-  <div id="tab-historial-carga" class="vis-tab-content app-content">
-    <div id="historial-carga-list"></div>
+  <div id="tab-historial-carga" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div id="historial-carga-list"></div>
+    </div>
   </div>
 </div>
 
@@ -135,15 +141,16 @@
      SUPERVISOR
 ══════════════════════════════════ -->
 <div id="screen-supervisor" style="display:none;">
-  <header>
-    <div class="logo">
+  <!-- HEADER — mismo estilo que visualizador -->
+  <header class="vis-header vis-header-sup">
+    <div class="vis-header-left">
       <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png"
            alt="Romero Panificados" class="header-logo">
     </div>
-    <div class="vis-tabs">
-      <div class="vis-tab active" data-tab="tab-sup-nuevo">NUEVA NOVEDAD</div>
-      <div class="vis-tab" data-tab="tab-sup-historial">HISTORIAL</div>
-    </div>
+    <nav class="vis-nav">
+      <div class="vis-nav-btn vis-nav-btn-sup active" data-stab="tab-sup-nuevo">NUEVA NOVEDAD</div>
+      <div class="vis-nav-btn vis-nav-btn-sup" data-stab="tab-sup-historial">HISTORIAL</div>
+    </nav>
     <div class="hbadge">
       <span id="sup-nombre">—</span>
       <span class="role-tag sup">SUPERVISOR</span>
@@ -151,79 +158,84 @@
     </div>
   </header>
 
-  <div id="tab-sup-nuevo" class="vis-tab-content app-content active">
-    <div class="section-header">
-      <div class="section-title">NOVEDAD DE TURNO</div>
-      <div class="fecha-badge" id="fecha-sup">—</div>
-    </div>
+  <div id="tab-sup-nuevo" class="vis-panel active">
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title section-title-sup">NOVEDAD DE TURNO</div>
+        <div class="fecha-badge" id="fecha-sup">—</div>
+      </div>
 
-    <div class="card">
-      <div class="form-grid">
-        <div class="field">
-          <label>Turno</label>
-          <div class="turno-grid">
-            <div class="turno-btn turno-sup" data-turno="mañana">MAÑANA</div>
-            <div class="turno-btn turno-sup" data-turno="tarde">TARDE</div>
-            <div class="turno-btn turno-sup" data-turno="noche">NOCHE</div>
+      <div class="card">
+        <div class="form-grid">
+          <div class="field">
+            <label>Turno</label>
+            <div class="turno-grid">
+              <div class="turno-btn turno-sup" data-turno="mañana">MAÑANA</div>
+              <div class="turno-btn turno-sup" data-turno="tarde">TARDE</div>
+              <div class="turno-btn turno-sup" data-turno="noche">NOCHE</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Sector</label>
+            <select id="sup-sector">
+              <option value="">Seleccionar Sector</option>
+              <option value="Fabricación">Fabricación</option>
+              <option value="Cámara de Fermento">Cámara de Fermento</option>
+              <option value="Horno">Horno</option>
+              <option value="Enfriador">Enfriador</option>
+              <option value="Envase">Envase</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label>Tipo de Novedad</label>
+            <div class="tipo-grid">
+              <div class="tipo-btn" data-tipo="problema">⚠ PROBLEMA</div>
+              <div class="tipo-btn" data-tipo="observacion">OBSERVACIÓN</div>
+              <div class="tipo-btn" data-tipo="urgente">🔴 URGENTE</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Responsable de Turno</label>
+            <input type="text" id="sup-responsable" placeholder="Nombre del responsable">
+          </div>
+
+          <!-- NUEVO: 3 opciones de resolución -->
+          <div class="field">
+            <label>¿Se resolvió en el turno?</label>
+            <div class="radio-group radio-group-col">
+              <label class="radio-label"><input type="radio" name="resuelto" value="si"> Sí, se resolvió</label>
+              <label class="radio-label"><input type="radio" name="resuelto" value="no" checked> No se resolvió</label>
+              <label class="radio-label"><input type="radio" name="resuelto" value="en-curso"> Se inició pero no se terminó</label>
+            </div>
           </div>
         </div>
 
-        <div class="field">
-          <label>Sector</label>
-          <select id="sup-sector">
-            <option value="">Seleccionar Sector</option>
-            <option value="Fabricación">Fabricación</option>
-            <option value="Cámara de Fermento">Cámara de Fermento</option>
-            <option value="Horno">Horno</option>
-            <option value="Envase y Expediciones">Envase y Expediciones</option>
-            <option value="General">General</option>
-          </select>
-        </div>
-
-        <div class="field full">
-          <label>Tipo de Novedad</label>
-          <div class="tipo-grid">
-            <div class="tipo-btn" data-tipo="problema">⚠ PROBLEMA</div>
-            <div class="tipo-btn" data-tipo="observacion">OBSERVACIÓN</div>
-            <div class="tipo-btn" data-tipo="urgente">🔴 URGENTE</div>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Responsable de Turno</label>
-          <input type="text" id="sup-responsable" placeholder="Nombre del responsable">
-        </div>
-
-        <div class="field">
-          <label>¿Se resolvió en el turno?</label>
-          <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="resuelto" value="si"> Sí</label>
-            <label class="radio-label"><input type="radio" name="resuelto" value="no" checked> No</label>
-          </div>
+        <div class="field mb-0">
+          <label>Descripción</label>
+          <textarea id="sup-descripcion" placeholder="Describí la situación con el mayor detalle posible..."></textarea>
         </div>
       </div>
 
-      <div class="field mb-0">
-        <label>Descripción</label>
-        <textarea id="sup-descripcion" placeholder="Describí la situación con el mayor detalle posible..."></textarea>
-      </div>
+      <button class="btn btn-amber" id="btn-guardar-novedad">REGISTRAR NOVEDAD</button>
     </div>
-
-    <button class="btn btn-amber" id="btn-guardar-novedad">REGISTRAR NOVEDAD</button>
   </div>
 
-  <div id="tab-sup-historial" class="vis-tab-content app-content">
-    <div id="historial-sup-list"></div>
+  <div id="tab-sup-historial" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div id="historial-sup-list"></div>
+    </div>
   </div>
 </div>
 
 <!-- ══════════════════════════════════
-     VISUALIZADOR — NUEVO LAYOUT
+     VISUALIZADOR
 ══════════════════════════════════ -->
-<!-- IMPORTANTE: display:none aquí, el JS debe usar display:block al mostrarlo -->
 <div id="screen-vis" style="display:none;">
 
-  <!-- HEADER COMPACTO HORIZONTAL — una sola línea -->
   <header class="vis-header">
     <div class="vis-header-left">
       <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png"
@@ -241,21 +253,17 @@
     </div>
   </header>
 
-  <!-- ── TAB: PARTES MTTO (layout 2 columnas) ── -->
+  <!-- TAB: PARTES MTTO -->
   <div id="tab-partes" class="vis-panel active">
     <div class="vis-two-col">
-
-      <!-- columna principal -->
       <div class="vis-col-main">
-        <!-- KPIs siempre visibles -->
         <div class="kpi-row">
           <div class="kpi"><div class="kpi-val" id="kpi-total">0</div><div class="kpi-label">Total</div></div>
           <div class="kpi kpi-ok"><div class="kpi-val" id="kpi-completados">0</div><div class="kpi-label">Completados</div></div>
           <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-pendientes">0</div><div class="kpi-label">Pendientes</div></div>
-          <div class="kpi kpi-prog"><div class="kpi-val" id="kpi-progreso">0</div><div class="kpi-label">En Progreso</div></div>
+          <div class="kpi kpi-prog"><div class="kpi-val" id="kpi-progreso">0</div><div class="kpi-label">En Proceso</div></div>
         </div>
 
-        <!-- Filtros en línea compactos -->
         <div class="filtros-inline">
           <div class="fi-group"><label>Desde</label><input type="date" id="filtro-desde"></div>
           <div class="fi-group"><label>Hasta</label><input type="date" id="filtro-hasta"></div>
@@ -266,7 +274,8 @@
               <option value="Fabricación">Fabricación</option>
               <option value="Cámara de Fermento">Cámara de Fermento</option>
               <option value="Horno">Horno</option>
-              <option value="Envase y Expediciones">Envase y Expediciones</option>
+              <option value="Enfriador">Enfriador</option>
+              <option value="Envase">Envase</option>
             </select>
           </div>
           <div class="fi-group">
@@ -275,7 +284,7 @@
               <option value="">Todos</option>
               <option value="completado">Completado</option>
               <option value="pendiente">Pendiente</option>
-              <option value="en-progreso">En Progreso</option>
+              <option value="en-proceso">En Proceso</option>
             </select>
           </div>
           <button class="btn btn-sm" id="btn-filtrar">FILTRAR</button>
@@ -286,7 +295,6 @@
         <div id="partes-list"></div>
       </div>
 
-      <!-- sidebar derecha -->
       <aside class="vis-sidebar">
         <div class="sidebar-block">
           <div class="sidebar-label">POR SECTOR</div>
@@ -302,18 +310,17 @@
           <div id="sidebar-resumen"></div>
         </div>
       </aside>
-
     </div>
   </div>
 
-  <!-- ── TAB: NOVEDADES ── -->
+  <!-- TAB: NOVEDADES -->
   <div id="tab-novedades" class="vis-panel" style="display:none;">
     <div class="app-content">
       <div id="novedades-vis-list"></div>
     </div>
   </div>
 
-  <!-- ── TAB: ESTADÍSTICAS ── -->
+  <!-- TAB: ESTADÍSTICAS -->
   <div id="tab-stats" class="vis-panel" style="display:none;">
     <div class="app-content">
       <div class="stats-block-title">PARTES DE MANTENIMIENTO</div>
@@ -321,7 +328,7 @@
         <div class="kpi"><div class="kpi-val" id="kpi-total-s">0</div><div class="kpi-label">Total</div></div>
         <div class="kpi kpi-ok"><div class="kpi-val" id="kpi-completados-s">0</div><div class="kpi-label">Completados</div></div>
         <div class="kpi kpi-pend"><div class="kpi-val" id="kpi-pendientes-s">0</div><div class="kpi-label">Pendientes</div></div>
-        <div class="kpi kpi-prog"><div class="kpi-val" id="kpi-progreso-s">0</div><div class="kpi-label">En Progreso</div></div>
+        <div class="kpi kpi-prog"><div class="kpi-val" id="kpi-progreso-s">0</div><div class="kpi-label">En Proceso</div></div>
       </div>
       <div class="charts-row">
         <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-sectores"></canvas></div>
@@ -378,7 +385,7 @@
     <div class="modal-body">
       <div class="modal-field"><div class="modal-label">DESCRIPCIÓN</div><div class="modal-value" id="modal-nov-desc">—</div></div>
       <div class="modal-field"><div class="modal-label">RESPONSABLE DE TURNO</div><div class="modal-value" id="modal-nov-resp">—</div></div>
-      <div class="modal-field"><div class="modal-label">¿SE RESOLVIÓ EN EL TURNO?</div><div class="modal-value" id="modal-nov-resuelto">—</div></div>
+      <div class="modal-field"><div class="modal-label">RESOLUCIÓN EN EL TURNO</div><div class="modal-value" id="modal-nov-resuelto">—</div></div>
       <div class="modal-badges">
         <span class="modal-badge" id="modal-nov-turno">—</span>
         <span class="modal-badge modal-badge-tipo" id="modal-nov-tipo">—</span>
