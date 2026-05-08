@@ -65,7 +65,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-body);
 
 .estado-btn.selected[data-estado="completado"]  { background: #1b2b1c; color: #63b167; border-color: #2d4a2e; }
 .estado-btn.selected[data-estado="pendiente"]   { background: #3a1e1a; color: #ff6b57; border-color: #66261d; }
-.estado-btn.selected[data-estado="en-progreso"] { background: #332b12; color: #f5b324; border-color: #5c4a14; }
+.estado-btn.selected[data-estado="en-proceso"]  { background: #332b12; color: #f5b324; border-color: #5c4a14; }
 
 .tipo-btn.selected[data-tipo="problema"]    { background: #332b12; color: #f5b324; border-color: #5c4a14; }
 .tipo-btn.selected[data-tipo="observacion"] { background: #1a2535; color: #60a5fa; border-color: #1e3a5f; }
@@ -90,79 +90,19 @@ input:focus, select:focus, textarea:focus { border-color: var(--muted); }
 textarea { min-height: 100px; resize: vertical; }
 select { cursor: pointer; }
 
-.radio-group { display: flex; gap: 24px; padding: 10px 0 4px; }
+.radio-group { display: flex; gap: 24px; padding: 10px 0 4px; flex-wrap: wrap; }
+/* Variante columna para opciones más largas (supervisor) */
+.radio-group-col { flex-direction: column; gap: 10px; }
 .radio-label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); cursor: pointer; }
 .radio-label input[type="radio"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; padding: 0; background: none; border: none; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
 
-/* ══ HEADER UNIFICADO — Mantenimiento / Supervisor / Visualizador ══ */
-header {
-  background: #161616;
-  border-bottom: 1px solid #2a2a2a;
-  padding: 0 20px;
-  height: 52px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  width: 100%;
-}
-.logo { display: flex; align-items: center; flex-shrink: 0; margin-right: 20px; }
-.logo-sub { display: none; }
-
-/* Tabs integradas dentro del header */
-.vis-tabs {
-  display: flex;
-  flex: 1;
-  justify-content: center;
-  background: transparent;
-  border-bottom: none;
-  height: 52px;
-  align-items: stretch;
-}
-.vis-tab {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 52px;
-  padding: 0 24px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1.5px;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: .15s;
-  text-transform: uppercase;
-  white-space: nowrap;
-  flex: unset;
-}
-.vis-tab:hover:not(.active) { color: var(--text); }
-.vis-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: transparent; }
-#screen-supervisor .vis-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
-
-/* Badge siempre al extremo derecho del header */
-header .hbadge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-/* ══ SCREEN VIS — RESET CRÍTICO ══ */
-#screen-vis {
-  display: block;
-  width: 100%;
-  min-height: 100vh;
-}
-
-/* ══ HEADER — Visualizador (una sola línea horizontal) ══ */
+/* ══════════════════════════════════════
+   HEADER UNIFICADO — TODOS LOS ROLES
+   Mismo estilo horizontal que visualizador
+══════════════════════════════════════ */
 .vis-header {
   background: #161616;
   border-bottom: 1px solid #2a2a2a;
@@ -179,12 +119,17 @@ header .hbadge {
   overflow: hidden;
 }
 
+/* Acento lateral por rol en el header */
+.vis-header { border-top: 2px solid transparent; }
+.vis-header-sup { border-top: 2px solid var(--amber); }
+
 .vis-header-left {
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
 
+/* ══ NAV (común a todos los roles) ══ */
 .vis-nav {
   display: flex;
   flex-direction: row;
@@ -210,10 +155,20 @@ header .hbadge {
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* Visualizador: acento rojo */
 .vis-nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 .vis-nav-btn:hover:not(.active) { color: var(--text); }
 
-/* hbadge en vis-header siempre al extremo derecho */
+/* Supervisor: acento ámbar */
+.vis-nav-btn-sup.active { color: var(--amber) !important; border-bottom-color: var(--amber) !important; }
+.vis-nav-btn-sup:hover:not(.active) { color: var(--text); }
+
+/* Mantenimiento: acento dorado */
+.vis-nav-btn-mtto.active { color: var(--accent2) !important; border-bottom-color: var(--accent2) !important; }
+.vis-nav-btn-mtto:hover:not(.active) { color: var(--text); }
+
+/* hbadge siempre al extremo derecho */
 .vis-header .hbadge {
   display: flex;
   align-items: center;
@@ -232,19 +187,11 @@ header .hbadge {
 .btn-logout { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; font-family: var(--font-mono); font-size: 10px; cursor: pointer; transition: .2s; }
 .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ══ TABS (Mantenimiento / Supervisor) ══ */
-.vis-tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); }
-.vis-tab { flex: 1; text-align: center; padding: 14px; font-family: var(--font-mono); font-size: 11px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: .2s; }
-.vis-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-#screen-supervisor .vis-tab.active { color: var(--amber); border-bottom-color: var(--amber); }
-
-.vis-tab-content { display: none; }
-.vis-tab-content.active { display: block; }
-
-/* ══ LAYOUT VISUALIZADOR — paneles y 2 columnas ══ */
+/* ══ PANELES (todos los roles usan vis-panel) ══ */
 .vis-panel { display: none; width: 100%; }
 .vis-panel.active { display: block; }
 
+/* ══ LAYOUT VISUALIZADOR — 2 columnas ══ */
 .vis-two-col {
   display: grid;
   grid-template-columns: 1fr 280px;
@@ -358,8 +305,8 @@ header .hbadge {
 
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .section-title { font-family: var(--font-head); font-size: 24px; letter-spacing: 1px; }
-.section-title::after { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); margin-top: 4px; }
-#screen-supervisor .section-title::after { background: var(--amber); }
+.section-title::after { content: ''; display: block; width: 24px; height: 2px; background: var(--accent2); margin-top: 4px; }
+.section-title-sup::after { background: var(--amber); }
 .fecha-badge { font-family: var(--font-mono); font-size: 11px; color: var(--muted); border: 1px solid var(--border); padding: 4px 10px; }
 
 /* ══ CARDS DE PARTES ══ */
@@ -367,14 +314,14 @@ header .hbadge {
 .parte-card:hover { background: var(--surface2); }
 .parte-card.estado-completado  { border-left-color: #2d4a2e; }
 .parte-card.estado-pendiente   { border-left-color: var(--accent); }
-.parte-card.estado-en-progreso { border-left-color: var(--accent2); }
+.parte-card.estado-en-proceso  { border-left-color: var(--accent2); }
 
 .parte-header { display: flex; justify-content: space-between; align-items: flex-start; }
 .parte-sector { font-family: var(--font-head); font-size: 20px; }
 .parte-estado { font-size: 9px; font-weight: 700; padding: 4px 8px; }
 .parte-estado.completado  { background: #1b2b1c; color: #63b167; }
 .parte-estado.pendiente   { background: #3a1e1a; color: #ff6b57; }
-.parte-estado.en-progreso { background: #332b12; color: #f5b324; }
+.parte-estado.en-proceso  { background: #332b12; color: #f5b324; }
 
 /* ══ CARDS DE NOVEDADES ══ */
 .novedad-card { background: var(--surface); border-left: 4px solid var(--border); padding: 16px; margin-bottom: 10px; cursor: pointer; transition: .15s; }
@@ -390,9 +337,11 @@ header .hbadge {
 .novedad-tipo-badge.observacion { background: #1a2535; color: #60a5fa; }
 .novedad-tipo-badge.urgente     { background: #3a1e1a; color: #ff6b57; }
 
+/* Badge de resolución — 3 estados */
 .novedad-resuelto { font-size: 9px; padding: 3px 7px; border: 1px solid var(--border); color: var(--muted); font-family: var(--font-mono); }
-.novedad-resuelto.si  { border-color: #2d4a2e; color: #63b167; background: #1b2b1c; }
-.novedad-resuelto.no  { border-color: #66261d; color: #ff6b57; background: #3a1e1a; }
+.novedad-resuelto.si       { border-color: #2d4a2e; color: #63b167; background: #1b2b1c; }
+.novedad-resuelto.no       { border-color: #66261d; color: #ff6b57; background: #3a1e1a; }
+.novedad-resuelto.en-curso { border-color: #5c4a14; color: #f5b324; background: #332b12; }
 
 /* ══ BOTONES ══ */
 .btn { width: 100%; padding: 14px; background: var(--accent); color: white; border: none; font-family: var(--font-head); font-size: 20px; letter-spacing: 1px; cursor: pointer; transition: opacity .2s; }
@@ -444,3 +393,10 @@ header .hbadge {
 .modal-badge-tipo.problema    { background: #332b12; color: #f5b324; border-color: #5c4a14; }
 .modal-badge-tipo.observacion { background: #1a2535; color: #60a5fa; border-color: #1e3a5f; }
 .modal-badge-tipo.urgente     { background: #3a1e1a; color: #ff6b57; border-color: #66261d; }
+
+/* ══ SCREEN RESETS ══ */
+#screen-vis, #screen-carga, #screen-supervisor {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
