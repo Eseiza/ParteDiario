@@ -19,7 +19,7 @@ const db  = getFirestore(app);
 const COL_PARTES    = "partes";
 const COL_NOVEDADES = "novedades";
 
-// ══ USUARIOS (reemplazar por Firebase Auth en producción) ══
+// ══ USUARIOS ══
 const USERS = {
     "mtto1":       { password: "mtto123",  role: "mantenimiento", nombre: "" },
     "supervisor1": { password: "super123", role: "supervisor",    nombre: "" },
@@ -39,9 +39,6 @@ const state = {
     unsub: null,
     unsubNov: null
 };
-
-// Paleta de colores para barras de sector
-const SECTOR_COLORS = ['accent', 'amb', 'grn', 'blu', 'accent', 'amb'];
 
 // ══ FECHA ══
 const hoy = new Date().toLocaleDateString('es-AR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
@@ -83,7 +80,6 @@ document.getElementById('login-btn').addEventListener('click', () => {
         suscribirNovedadesSup();
 
     } else {
-        // ══ FIX CRÍTICO: 'block' en lugar de 'flex' ══
         document.getElementById('screen-vis').style.display = 'block';
         document.getElementById('vis-nombre').textContent = user.nombre;
         suscribirPartes();
@@ -136,7 +132,13 @@ function renderPartes() {
 
 function buildPartesHtml(arr) {
     if (!arr.length) return emptyMsg('Sin registros.');
-    const labels = { completado:'COMPLETADO', pendiente:'PENDIENTE', 'en-progreso':'EN PROGRESO' };
+    // Soporte tanto para valor antiguo "en-progreso" como nuevo "en-proceso"
+    const labels = {
+        completado:   'COMPLETADO',
+        pendiente:    'PENDIENTE',
+        'en-proceso': 'EN PROCESO',
+        'en-progreso':'EN PROCESO'   // retrocompatibilidad
+    };
     return arr.map(p => `
         <div class="parte-card estado-${p.estado}" onclick="verParte('${p.firestoreId}')">
             <div class="parte-header">
@@ -167,13 +169,19 @@ function renderNovedadesVis() {
 function buildNovedadesHtml(arr) {
     if (!arr.length) return emptyMsg('Sin novedades.');
     const tipoLabel = { problema:'⚠ PROBLEMA', observacion:'OBSERVACIÓN', urgente:'🔴 URGENTE' };
+    // Etiquetas de resolución para 3 estados
+    const resueltoLabel = {
+        si:        'RESUELTO',
+        no:        'PENDIENTE',
+        'en-curso':'EN CURSO'
+    };
     return arr.map(n => `
         <div class="novedad-card tipo-${n.tipo}" onclick="verNovedad('${n.firestoreId}')">
             <div class="novedad-header">
                 <div class="novedad-sector">${n.sector}</div>
                 <div style="display:flex;align-items:center;gap:6px">
                     <span class="novedad-tipo-badge ${n.tipo}">${tipoLabel[n.tipo] || n.tipo}</span>
-                    <span class="novedad-resuelto ${n.resuelto}">${n.resuelto === 'si' ? 'RESUELTO' : 'PENDIENTE'}</span>
+                    <span class="novedad-resuelto ${n.resuelto}">${resueltoLabel[n.resuelto] || n.resuelto}</span>
                 </div>
             </div>
             <div style="font-size:10px;color:var(--muted);margin:4px 0;font-family:var(--font-mono)">
@@ -245,7 +253,7 @@ function renderSidebarResumen() {
 
     const partesSemanales  = state.partes.filter(p => p.timestamp >= inicioSemana.getTime());
     const novSemanales     = state.novedades.filter(n => n.timestamp >= inicioSemana.getTime());
-    const urgentes         = novSemanales.filter(n => n.tipo === 'urgente' && n.resuelto === 'no');
+    const urgentes         = novSemanales.filter(n => n.tipo === 'urgente' && n.resuelto !== 'si');
     const resueltas        = novSemanales.filter(n => n.resuelto === 'si').length;
     const tasaResolucion   = novSemanales.length
         ? Math.round((resueltas / novSemanales.length) * 100)
@@ -300,11 +308,47 @@ document.querySelectorAll('.tipo-btn').forEach(b => b.addEventListener('click', 
     state.supTipo = e.target.dataset.tipo;
 }));
 
-// ══ SECTOR "OTROS" ══
+// ══ SECTOR "OTROS" (MTTO) ══
 document.getElementById('campo-sector')?.addEventListener('change', function () {
     const wrap = document.getElementById('campo-sector-otro-wrap');
     wrap.style.display = this.value === 'Otros' ? 'block' : 'none';
     if (this.value !== 'Otros') document.getElementById('campo-sector-otro').value = '';
+});
+
+// ══ NAVEGACIÓN MTTO — misma lógica que visualizador ══
+document.querySelectorAll('[data-ctab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-ctab]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = btn.dataset.ctab;
+        document.querySelectorAll('#screen-carga .vis-panel').forEach(p => {
+            p.style.display = 'none';
+            p.classList.remove('active');
+        });
+        const target = document.getElementById(tabId);
+        if (target) {
+            target.style.display = 'block';
+            target.classList.add('active');
+        }
+    });
+});
+
+// ══ NAVEGACIÓN SUPERVISOR ══
+document.querySelectorAll('[data-stab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-stab]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = btn.dataset.stab;
+        document.querySelectorAll('#screen-supervisor .vis-panel').forEach(p => {
+            p.style.display = 'none';
+            p.classList.remove('active');
+        });
+        const target = document.getElementById(tabId);
+        if (target) {
+            target.style.display = 'block';
+            target.classList.add('active');
+        }
+    });
 });
 
 // ══ GUARDAR PARTE ══
@@ -392,7 +436,11 @@ function aplicarFiltros() {
         if (desde && fecha < new Date(desde)) return false;
         if (hasta && fecha > new Date(hasta + 'T23:59:59')) return false;
         if (sector && p.sector !== sector) return false;
-        if (estado && p.estado !== estado) return false;
+        // compatibilidad con registros viejos "en-progreso"
+        if (estado) {
+            const estadoNorm = (p.estado === 'en-progreso') ? 'en-proceso' : p.estado;
+            if (estadoNorm !== estado) return false;
+        }
         return true;
     });
     renderPartes();
@@ -402,12 +450,12 @@ function aplicarFiltros() {
 }
 
 // ══ NAVEGACIÓN VISUALIZADOR ══
-document.querySelectorAll('.vis-nav-btn').forEach(btn => {
+document.querySelectorAll('.vis-nav-btn[data-vtab]').forEach(btn => {
     btn.addEventListener('click', () => {
-        document.querySelectorAll('.vis-nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.vis-nav-btn[data-vtab]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const tabId = btn.dataset.vtab;
-        document.querySelectorAll('.vis-panel').forEach(p => {
+        document.querySelectorAll('#screen-vis .vis-panel').forEach(p => {
             p.style.display = 'none';
             p.classList.remove('active');
         });
@@ -427,21 +475,6 @@ window.switchToTab = (tabId) => {
     const btn = document.querySelector(`.vis-nav-btn[data-vtab="${tabId}"]`);
     if (btn) btn.click();
 };
-
-// ══ TABS (Mantenimiento / Supervisor) ══
-document.querySelectorAll('.vis-tab').forEach(tab => {
-    tab.addEventListener('click', e => {
-        const container = e.target.closest('.vis-tabs').parentElement;
-        container.querySelectorAll('.vis-tab').forEach(t => t.classList.remove('active'));
-        container.querySelectorAll('.vis-tab-content').forEach(c => {
-            c.style.display = 'none';
-            c.classList.remove('active');
-        });
-        e.target.classList.add('active');
-        const target = document.getElementById(e.target.dataset.tab);
-        if (target) { target.style.display = 'block'; target.classList.add('active'); }
-    });
-});
 
 // ══ UTILS ══
 function showToast(m, err = false) {
@@ -478,13 +511,17 @@ window.doLogout = () => location.reload();
 window.verParte = (id) => {
     const p = state.partes.find(x => x.firestoreId === id);
     if (!p) return;
+    const estadoLabels = {
+        completado: 'COMPLETADO', pendiente: 'PENDIENTE',
+        'en-proceso': 'EN PROCESO', 'en-progreso': 'EN PROCESO'
+    };
     document.getElementById('modal-sector').textContent      = p.sector;
     document.getElementById('modal-meta').textContent        = `${p.fechaCorta} · Por ${p.usuario}`;
     document.getElementById('modal-realizada').textContent   = p.realizada;
     document.getElementById('modal-responsable').textContent = p.responsable || '—';
     document.getElementById('modal-solicitada').textContent  = p.solicitada === 'si' ? 'Sí' : 'No';
     document.getElementById('modal-turno').textContent       = (p.turno || '').toUpperCase();
-    document.getElementById('modal-estado').textContent      = (p.estado || '').toUpperCase();
+    document.getElementById('modal-estado').textContent      = estadoLabels[p.estado] || (p.estado || '').toUpperCase();
     document.getElementById('modal-overlay').style.display   = 'flex';
 };
 window.cerrarModal = () => document.getElementById('modal-overlay').style.display = 'none';
@@ -494,11 +531,12 @@ window.verNovedad = (id) => {
     const n = state.novedades.find(x => x.firestoreId === id);
     if (!n) return;
     const tipoLabel = { problema:'⚠ PROBLEMA', observacion:'👁 OBSERVACIÓN', urgente:'🔴 URGENTE' };
+    const resueltoLabel = { si: 'Sí, se resolvió', no: 'No se resolvió', 'en-curso': 'Se inició pero no se terminó' };
     document.getElementById('modal-nov-sector').textContent  = n.sector;
     document.getElementById('modal-nov-meta').textContent    = `${n.fechaCorta} · Por ${n.usuario}`;
     document.getElementById('modal-nov-desc').textContent    = n.descripcion;
     document.getElementById('modal-nov-resp').textContent    = n.responsable || '—';
-    document.getElementById('modal-nov-resuelto').textContent= n.resuelto === 'si' ? 'Sí' : 'No';
+    document.getElementById('modal-nov-resuelto').textContent= resueltoLabel[n.resuelto] || n.resuelto;
     document.getElementById('modal-nov-turno').textContent   = (n.turno || '').toUpperCase();
     const tipoBadge = document.getElementById('modal-nov-tipo');
     tipoBadge.textContent  = tipoLabel[n.tipo] || n.tipo;
@@ -511,12 +549,14 @@ window.cerrarModalNov = () => document.getElementById('modal-nov-overlay').style
 function actualizarKpis() {
     const el = id => document.getElementById(id);
     const arr = state.partesFiltrados;
+    // normalizar "en-progreso" legado → "en-proceso"
+    const enProceso = arr.filter(x => x.estado === 'en-proceso' || x.estado === 'en-progreso').length;
 
     if (el('kpi-total')) {
         el('kpi-total').textContent       = arr.length;
         el('kpi-completados').textContent = arr.filter(x => x.estado === 'completado').length;
         el('kpi-pendientes').textContent  = arr.filter(x => x.estado === 'pendiente').length;
-        el('kpi-progreso').textContent    = arr.filter(x => x.estado === 'en-progreso').length;
+        el('kpi-progreso').textContent    = enProceso;
     }
     actualizarKpisStats();
 }
@@ -524,12 +564,13 @@ function actualizarKpis() {
 function actualizarKpisStats() {
     const el = id => document.getElementById(id);
     const arr = state.partesFiltrados;
+    const enProceso = arr.filter(x => x.estado === 'en-proceso' || x.estado === 'en-progreso').length;
 
     if (el('kpi-total-s')) {
         el('kpi-total-s').textContent       = arr.length;
         el('kpi-completados-s').textContent = arr.filter(x => x.estado === 'completado').length;
         el('kpi-pendientes-s').textContent  = arr.filter(x => x.estado === 'pendiente').length;
-        el('kpi-progreso-s').textContent    = arr.filter(x => x.estado === 'en-progreso').length;
+        el('kpi-progreso-s').textContent    = enProceso;
     }
 }
 
@@ -539,7 +580,8 @@ function actualizarKpisNov() {
     const arr = state.novedades;
     el('kpi-nov-total').textContent      = arr.length;
     el('kpi-nov-urgente').textContent    = arr.filter(x => x.tipo === 'urgente').length;
-    el('kpi-nov-noresuelto').textContent = arr.filter(x => x.resuelto === 'no').length;
+    // "sin resolver" = no + en-curso
+    el('kpi-nov-noresuelto').textContent = arr.filter(x => x.resuelto !== 'si').length;
 }
 
 // ══ CHARTS ══
@@ -575,15 +617,16 @@ function renderCharts() {
 
     const cEst = document.getElementById('chart-estados');
     if (cEst) {
+        const enProceso = state.partesFiltrados.filter(x => x.estado === 'en-proceso' || x.estado === 'en-progreso').length;
         const vals = [
             state.partesFiltrados.filter(x => x.estado === 'completado').length,
             state.partesFiltrados.filter(x => x.estado === 'pendiente').length,
-            state.partesFiltrados.filter(x => x.estado === 'en-progreso').length,
+            enProceso,
         ];
         charts.estados = new Chart(cEst, {
             type: 'doughnut',
             data: {
-                labels: ['Completado', 'Pendiente', 'En Progreso'],
+                labels: ['Completado', 'Pendiente', 'En Proceso'],
                 datasets: [{ data: vals, backgroundColor: ['#2d4a2e','#66261d','#5c4a14'], borderColor: ['#63b167','#ff6b57','#f5b324'], borderWidth: 1 }]
             },
             options: { plugins: { legend: legendStyle } }
