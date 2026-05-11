@@ -24,7 +24,7 @@ const COL_NOVEDADES = "novedades";
 const USERS = {
     "mtto1":       { password: "mtto123",  role: "mantenimiento", nombre: "Técnico" },
     "supervisor1": { password: "super123", role: "supervisor",    nombre: "Supervisor" },
-    "admin":       { password: "123",      role: "visualizador",  nombre: "Admin" }
+    "admin":       { password: "admin123",      role: "visualizador",  nombre: "Admin" }
 };
 
 const state = {
