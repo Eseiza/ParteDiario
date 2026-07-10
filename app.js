@@ -22,12 +22,13 @@ const COL_NOVEDADES = "novedades";
 
 // ══ USUARIOS ══
 const USERS = {
-    "mtto1":       { password: "mtto123",  role: "mantenimiento", nombre: "Técnico" },
-    "Joaquin":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Joaquin" },
-    "Manuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Manuel" },
-    "Matias":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Matias" },
-    "Mateo":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Mateo" },
-    "Ignacio":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Nacho" },
+    "mtto":       { password: "mtto1234",  role: "mantenimiento", nombre: "" },
+    "Javier":       { password: "mtto12345",  role: "mantenimiento", nombre: "Speroni" },
+    "Joaquin":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Girard" },
+    "Manuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Vidal" },
+    "Matias":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Liway" },
+    "Mateo":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Piedra" },
+    "Ignacio":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Ledesma" },
     "JuanManuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Cappe" },
     "supervisor1": { password: "super123", role: "supervisor",    nombre: "Supervisor" },
     "admin":       { password: "admin123",      role: "visualizador",  nombre: "Admin" }
