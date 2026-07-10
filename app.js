@@ -23,6 +23,12 @@ const COL_NOVEDADES = "novedades";
 // ══ USUARIOS ══
 const USERS = {
     "mtto1":       { password: "mtto123",  role: "mantenimiento", nombre: "Técnico" },
+    "Joaquin":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Joaquin" },
+    "Manuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Manuel" },
+    "Matias":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Matias" },
+    "Mateo":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Mateo" },
+    "Ignacio":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Nacho" },
+    "JuanManuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Cappe" },
     "supervisor1": { password: "super123", role: "supervisor",    nombre: "Supervisor" },
     "admin":       { password: "admin123",      role: "visualizador",  nombre: "Admin" }
 };
