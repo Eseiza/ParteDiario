@@ -379,6 +379,15 @@ select { cursor: pointer; }
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast.err  { background: #3a1e1a; color: #ff6b57; }
 
+/* ══ INFORME (parte diario) ══ */
+.informe-card { background: var(--surface); border-left: 4px solid var(--accent2); padding: 16px; margin-bottom: 10px; }
+.informe-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.informe-asunto { font-family: var(--font-head); font-size: 20px; }
+.btn-editar-informe { flex-shrink: 0; background: none; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; font-family: var(--font-mono); font-size: 10px; cursor: pointer; transition: .2s; }
+.btn-editar-informe:hover { border-color: var(--accent2); color: var(--accent2); }
+.informe-meta { font-size: 10px; color: var(--muted); margin: 6px 0; font-family: var(--font-mono); }
+.informe-cuerpo { font-size: 13px; white-space: pre-wrap; line-height: 1.5; }
+
 /* ══ MODAL ══ */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.82); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .modal-parte { background: var(--surface); width: 100%; max-width: 500px; border: 1px solid var(--border); }
