@@ -53,6 +53,7 @@
     </div>
     <nav class="vis-nav">
       <div class="vis-nav-btn active" data-ctab="tab-nuevo">NUEVO PARTE</div>
+      <div class="vis-nav-btn" data-ctab="tab-informe">INFORME</div>
       <div class="vis-nav-btn" data-ctab="tab-historial-carga">HISTORIAL</div>
     </nav>
     <div class="hbadge">
@@ -99,15 +100,15 @@
           </div>
 
           <div class="field">
-            <label>Persona Responsable</label>
-            <input type="text" id="campo-responsable" placeholder="Nombre">
+            <label>Persona Solicitante</label>
+            <input type="text" id="campo-solicitante" placeholder="Nombre">
           </div>
 
           <div class="field">
-            <label>¿Fue solicitada?</label>
+            <label>¿Se paró la producción?</label>
             <div class="radio-group">
-              <label class="radio-label"><input type="radio" name="solicitada" value="si"> Sí</label>
-              <label class="radio-label"><input type="radio" name="solicitada" value="no" checked> No</label>
+              <label class="radio-label"><input type="radio" name="paroProduccion" value="si"> Sí</label>
+              <label class="radio-label"><input type="radio" name="paroProduccion" value="no" checked> No</label>
             </div>
           </div>
         </div>
@@ -130,6 +131,32 @@
     </div>
   </div>
 
+  <!-- TAB: INFORME (parte diario) — campo distinto de la carga técnica -->
+  <div id="tab-informe" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title">PARTE DIARIO / INFORME</div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Asunto</label>
+          <input type="text" id="mtto-informe-asunto" placeholder="Asunto del informe...">
+        </div>
+        <div class="field mb-0">
+          <label>Mensaje</label>
+          <textarea id="mtto-informe-cuerpo" placeholder="Escribí el informe, como si fuera un mail..." style="min-height:180px"></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-green" id="mtto-btn-informe">REGISTRAR INFORME</button>
+      <button class="btn btn-outline" id="mtto-btn-informe-cancelar" style="display:none;margin-top:8px">CANCELAR EDICIÓN</button>
+
+      <div class="list-label" style="margin-top:24px">INFORMES</div>
+      <div id="mtto-informes-list"></div>
+    </div>
+  </div>
+
   <div id="tab-historial-carga" class="vis-panel" style="display:none;">
     <div class="app-content">
       <div id="historial-carga-list"></div>
@@ -149,6 +176,7 @@
     </div>
     <nav class="vis-nav">
       <div class="vis-nav-btn vis-nav-btn-sup active" data-stab="tab-sup-nuevo">NUEVA NOVEDAD</div>
+      <div class="vis-nav-btn vis-nav-btn-sup" data-stab="tab-sup-informe">INFORME</div>
       <div class="vis-nav-btn vis-nav-btn-sup" data-stab="tab-sup-historial">HISTORIAL</div>
     </nav>
     <div class="hbadge">
@@ -221,6 +249,32 @@
       </div>
 
       <button class="btn btn-amber" id="btn-guardar-novedad">REGISTRAR NOVEDAD</button>
+    </div>
+  </div>
+
+  <!-- TAB: INFORME (supervisor) -->
+  <div id="tab-sup-informe" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title section-title-sup">INFORME</div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>Asunto</label>
+          <input type="text" id="sup-informe-asunto" placeholder="Asunto del informe...">
+        </div>
+        <div class="field mb-0">
+          <label>Mensaje</label>
+          <textarea id="sup-informe-cuerpo" placeholder="Escribí el informe, como si fuera un mail..." style="min-height:180px"></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-amber" id="sup-btn-informe">REGISTRAR INFORME</button>
+      <button class="btn btn-outline" id="sup-btn-informe-cancelar" style="display:none;margin-top:8px">CANCELAR EDICIÓN</button>
+
+      <div class="list-label" style="margin-top:24px">INFORMES</div>
+      <div id="sup-informes-list"></div>
     </div>
   </div>
 
@@ -362,8 +416,8 @@
     </div>
     <div class="modal-body">
       <div class="modal-field"><div class="modal-label">TAREA REALIZADA</div><div class="modal-value" id="modal-realizada">—</div></div>
-      <div class="modal-field"><div class="modal-label">RESPONSABLE</div><div class="modal-value" id="modal-responsable">—</div></div>
-      <div class="modal-field"><div class="modal-label">¿FUE SOLICITADA?</div><div class="modal-value" id="modal-solicitada">—</div></div>
+      <div class="modal-field"><div class="modal-label">PERSONA SOLICITANTE</div><div class="modal-value" id="modal-responsable">—</div></div>
+      <div class="modal-field"><div class="modal-label">¿SE PARÓ LA PRODUCCIÓN?</div><div class="modal-value" id="modal-solicitada">—</div></div>
       <div class="modal-badges">
         <span class="modal-badge" id="modal-turno">—</span>
         <span class="modal-badge" id="modal-estado">—</span>
