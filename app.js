@@ -42,6 +42,7 @@ const state = {
     partesFiltrados: [],
     novedades: [],
     informes: [],
+    informesFiltrados: [],
     turnoActivo:  null,
     estadoActivo: null,
     supTurno:     null,
@@ -50,6 +51,27 @@ const state = {
     unsubNov: null,
     unsubInformes: null
 };
+
+// ══ GRUPOS DE MANTENIMIENTO ══
+// Se agrupa por el campo "nombre" (el que efectivamente se guarda como "usuario"
+// en cada registro), no por el usuario de login.
+// Grupo 1: JuanManuel (Cappe) y Ignacio (Ledesma)
+// Grupo 2: Mateo (Piedra) y Matias (Liway)
+// Grupo 3: Manuel (Vidal) y Joaquin (Girard)
+const GROUPS = {
+    "Cappe":   ["Cappe", "Ledesma"],
+    "Ledesma": ["Cappe", "Ledesma"],
+    "Piedra":  ["Piedra", "Liway"],
+    "Liway":   ["Piedra", "Liway"],
+    "Vidal":   ["Vidal", "Girard"],
+    "Girard":  ["Vidal", "Girard"]
+};
+
+// Usuarios que puede ver el usuario actual en su historial (él mismo + compañero de grupo).
+// Si no pertenece a ningún grupo definido, solo ve lo propio.
+function usuariosVisibles() {
+    return GROUPS[state.currentUser] || [state.currentUser];
+}
 
 // ══ FECHA ══
 const fechaHoy = new Date().toLocaleDateString('es-AR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
@@ -96,6 +118,7 @@ document.getElementById('login-btn').addEventListener('click', () => {
         document.getElementById('vis-nombre').textContent = user.nombre;
         suscribirPartes();
         suscribirNovedadesVis();
+        suscribirInformes();
     }
 });
 
@@ -133,11 +156,12 @@ function suscribirNovedadesVis() {
     });
 }
 
-// ══ FIRESTORE: INFORMES (mantenimiento + supervisor) ══
+// ══ FIRESTORE: INFORMES (mantenimiento + supervisor + visualizador) ══
 function suscribirInformes() {
     const q = query(collection(db, COL_INFORMES), orderBy('timestamp', 'desc'));
     state.unsubInformes = onSnapshot(q, snap => {
         state.informes = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+        state.informesFiltrados = [...state.informes];
         renderInformes();
     });
 }
@@ -146,9 +170,15 @@ function suscribirInformes() {
 function renderPartes() {
     const listCarga = document.getElementById('historial-carga-list');
     const listVis   = document.getElementById('partes-list');
-    const html = buildPartesHtml(state.partesFiltrados);
-    if (listCarga) listCarga.innerHTML = html;
-    if (listVis)   listVis.innerHTML   = html;
+
+    if (listCarga) {
+        // Mantenimiento solo ve lo propio + compañero de grupo en su historial
+        const visibles = state.role === 'mantenimiento'
+            ? state.partesFiltrados.filter(p => usuariosVisibles().includes(p.usuario))
+            : state.partesFiltrados;
+        listCarga.innerHTML = buildPartesHtml(visibles);
+    }
+    if (listVis) listVis.innerHTML = buildPartesHtml(state.partesFiltrados);
 }
 
 function buildPartesHtml(arr) {
@@ -208,11 +238,19 @@ function buildNovedadesHtml(arr) {
 
 // ══ RENDER INFORMES ══
 function renderInformes() {
+    // Mantenimiento: solo ve sus informes + los del compañero de grupo
     const listMtto = document.getElementById('mtto-informes-list');
-    if (listMtto) listMtto.innerHTML = buildInformesHtml(state.informes, 'mtto');
+    if (listMtto) {
+        const visibles = state.informes.filter(inf => usuariosVisibles().includes(inf.usuarioCreador));
+        listMtto.innerHTML = buildInformesHtml(visibles, 'mtto');
+    }
 
+    // Supervisor: ve todos los informes (rol de supervisión)
     const listSup = document.getElementById('sup-informes-list');
     if (listSup) listSup.innerHTML = buildInformesHtml(state.informes, 'sup');
+
+    // Visualizador/admin: ve todos, con filtros propios
+    renderInformesVis();
 }
 
 function buildInformesHtml(arr, prefix) {
@@ -232,6 +270,55 @@ function buildInformesHtml(arr, prefix) {
             <div class="informe-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
         </div>`;
     }).join('');
+}
+
+// ══ INFORMES — VISUALIZADOR (solo lectura, filtrable) ══
+function renderInformesVis() {
+    const el = document.getElementById('informes-vis-list');
+    if (!el) return;
+    el.innerHTML = buildInformesHtmlSoloLectura(state.informesFiltrados);
+}
+
+function buildInformesHtmlSoloLectura(arr) {
+    if (!arr.length) return emptyMsg('Sin informes.');
+    return arr.map(inf => {
+        const fc = inf.fechaCreacion ? new Date(inf.fechaCreacion).toLocaleString('es-AR') : '—';
+        const fe = inf.fechaEdicion  ? new Date(inf.fechaEdicion).toLocaleString('es-AR')  : null;
+        return `
+        <div class="informe-card">
+            <div class="informe-header">
+                <div class="informe-asunto">${inf.asunto}</div>
+            </div>
+            <div class="informe-meta">
+                De: ${inf.usuarioCreador || '—'} · Creado: ${fc}${fe ? ` · Editado: ${fe} (${inf.usuarioEdicion || '—'})` : ''}
+            </div>
+            <div class="informe-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
+        </div>`;
+    }).join('');
+}
+
+document.getElementById('informes-btn-filtrar')?.addEventListener('click', aplicarFiltrosInformes);
+document.getElementById('informes-btn-limpiar')?.addEventListener('click', () => {
+    ['informes-filtro-desde','informes-filtro-hasta'].forEach(id => document.getElementById(id).value = '');
+    const sel = document.getElementById('informes-filtro-usuario');
+    if (sel) sel.value = '';
+    state.informesFiltrados = [...state.informes];
+    renderInformesVis();
+});
+
+function aplicarFiltrosInformes() {
+    const desde   = document.getElementById('informes-filtro-desde').value;
+    const hasta   = document.getElementById('informes-filtro-hasta').value;
+    const usuario = document.getElementById('informes-filtro-usuario')?.value || '';
+
+    state.informesFiltrados = state.informes.filter(inf => {
+        const fecha = new Date(inf.fechaCreacion || inf.timestamp);
+        if (desde && fecha < new Date(desde)) return false;
+        if (hasta && fecha > new Date(hasta + 'T23:59:59')) return false;
+        if (usuario && inf.usuarioCreador !== usuario) return false;
+        return true;
+    });
+    renderInformesVis();
 }
 
 // ══ MÓDULO INFORME (compartido entre mantenimiento y supervisor) ══
