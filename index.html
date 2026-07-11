@@ -151,15 +151,16 @@
 
       <button class="btn btn-green" id="mtto-btn-informe">REGISTRAR INFORME</button>
       <button class="btn btn-outline" id="mtto-btn-informe-cancelar" style="display:none;margin-top:8px">CANCELAR EDICIÓN</button>
-
-      <div class="list-label" style="margin-top:24px">INFORMES</div>
-      <div id="mtto-informes-list"></div>
     </div>
   </div>
 
   <div id="tab-historial-carga" class="vis-panel" style="display:none;">
     <div class="app-content">
+      <div class="list-label">NOTIFICACIONES</div>
       <div id="historial-carga-list"></div>
+
+      <div class="list-label" style="margin-top:24px">PARTE DIARIO</div>
+      <div id="mtto-informes-list"></div>
     </div>
   </div>
 </div>
@@ -272,15 +273,16 @@
 
       <button class="btn btn-amber" id="sup-btn-informe">REGISTRAR INFORME</button>
       <button class="btn btn-outline" id="sup-btn-informe-cancelar" style="display:none;margin-top:8px">CANCELAR EDICIÓN</button>
-
-      <div class="list-label" style="margin-top:24px">INFORMES</div>
-      <div id="sup-informes-list"></div>
     </div>
   </div>
 
   <div id="tab-sup-historial" class="vis-panel" style="display:none;">
     <div class="app-content">
+      <div class="list-label">NOVEDADES</div>
       <div id="historial-sup-list"></div>
+
+      <div class="list-label" style="margin-top:24px">PARTE DIARIO</div>
+      <div id="sup-informes-list"></div>
     </div>
   </div>
 </div>
@@ -298,6 +300,7 @@
     <nav class="vis-nav">
       <div class="vis-nav-btn active" data-vtab="tab-partes">PARTES MTTO.</div>
       <div class="vis-nav-btn" data-vtab="tab-novedades">NOVEDADES</div>
+      <div class="vis-nav-btn" data-vtab="tab-informes-vis">INFORMES</div>
       <div class="vis-nav-btn" data-vtab="tab-stats">ESTADÍSTICAS</div>
     </nav>
     <div class="hbadge">
@@ -371,6 +374,35 @@
   <div id="tab-novedades" class="vis-panel" style="display:none;">
     <div class="app-content">
       <div id="novedades-vis-list"></div>
+    </div>
+  </div>
+
+  <!-- TAB: INFORMES (parte diario) -->
+  <div id="tab-informes-vis" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="filtros-inline">
+        <div class="fi-group"><label>Desde</label><input type="date" id="informes-filtro-desde"></div>
+        <div class="fi-group"><label>Hasta</label><input type="date" id="informes-filtro-hasta"></div>
+        <div class="fi-group">
+          <label>Usuario</label>
+          <select id="informes-filtro-usuario">
+            <option value="">Todos</option>
+            <option value="Speroni">Speroni</option>
+            <option value="Girard">Girard</option>
+            <option value="Vidal">Vidal</option>
+            <option value="Liway">Liway</option>
+            <option value="Piedra">Piedra</option>
+            <option value="Ledesma">Ledesma</option>
+            <option value="Cappe">Cappe</option>
+            <option value="Supervisor">Supervisor</option>
+          </select>
+        </div>
+        <button class="btn btn-sm" id="informes-btn-filtrar">FILTRAR</button>
+        <button class="btn btn-sm btn-outline" id="informes-btn-limpiar">✕</button>
+      </div>
+
+      <div class="list-label">PARTE DIARIO</div>
+      <div id="informes-vis-list"></div>
     </div>
   </div>
 
