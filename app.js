@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import {
-    getFirestore, collection, addDoc, onSnapshot, query, orderBy
+    getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 // ══ CONFIG FIREBASE ══
@@ -19,6 +19,7 @@ const db  = getFirestore(app);
 
 const COL_PARTES    = "partes";
 const COL_NOVEDADES = "novedades";
+const COL_INFORMES  = "informes";
 
 // ══ USUARIOS ══
 const USERS = {
@@ -40,12 +41,14 @@ const state = {
     partes: [],
     partesFiltrados: [],
     novedades: [],
+    informes: [],
     turnoActivo:  null,
     estadoActivo: null,
     supTurno:     null,
     supTipo:      null,
     unsub:    null,
-    unsubNov: null
+    unsubNov: null,
+    unsubInformes: null
 };
 
 // ══ FECHA ══
@@ -80,11 +83,13 @@ document.getElementById('login-btn').addEventListener('click', () => {
         document.getElementById('screen-carga').style.display = 'block';
         document.getElementById('carga-nombre').textContent = user.nombre;
         suscribirPartes();
+        suscribirInformes();
 
     } else if (state.role === 'supervisor') {
         document.getElementById('screen-supervisor').style.display = 'block';
         document.getElementById('sup-nombre').textContent = user.nombre;
         suscribirNovedadesSup();
+        suscribirInformes();
 
     } else {
         document.getElementById('screen-vis').style.display = 'block';
@@ -125,6 +130,15 @@ function suscribirNovedadesVis() {
         actualizarKpisNov();
         renderSidebar();
         renderCharts();
+    });
+}
+
+// ══ FIRESTORE: INFORMES (mantenimiento + supervisor) ══
+function suscribirInformes() {
+    const q = query(collection(db, COL_INFORMES), orderBy('timestamp', 'desc'));
+    state.unsubInformes = onSnapshot(q, snap => {
+        state.informes = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+        renderInformes();
     });
 }
 
@@ -191,6 +205,111 @@ function buildNovedadesHtml(arr) {
             <div style="font-size:13px;">${n.descripcion}</div>
         </div>`).join('');
 }
+
+// ══ RENDER INFORMES ══
+function renderInformes() {
+    const listMtto = document.getElementById('mtto-informes-list');
+    if (listMtto) listMtto.innerHTML = buildInformesHtml(state.informes, 'mtto');
+
+    const listSup = document.getElementById('sup-informes-list');
+    if (listSup) listSup.innerHTML = buildInformesHtml(state.informes, 'sup');
+}
+
+function buildInformesHtml(arr, prefix) {
+    if (!arr.length) return emptyMsg('Sin informes.');
+    return arr.map(inf => {
+        const fc = inf.fechaCreacion ? new Date(inf.fechaCreacion).toLocaleString('es-AR') : '—';
+        const fe = inf.fechaEdicion  ? new Date(inf.fechaEdicion).toLocaleString('es-AR')  : null;
+        return `
+        <div class="informe-card">
+            <div class="informe-header">
+                <div class="informe-asunto">${inf.asunto}</div>
+                <button type="button" class="btn-editar-informe" onclick="editarInforme_${prefix}('${inf.firestoreId}')">EDITAR</button>
+            </div>
+            <div class="informe-meta">
+                De: ${inf.usuarioCreador || '—'} · Creado: ${fc}${fe ? ` · Editado: ${fe} (${inf.usuarioEdicion || '—'})` : ''}
+            </div>
+            <div class="informe-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
+        </div>`;
+    }).join('');
+}
+
+// ══ MÓDULO INFORME (compartido entre mantenimiento y supervisor) ══
+function crearModuloInformes(prefix) {
+    const asuntoEl = document.getElementById(`${prefix}-informe-asunto`);
+    const cuerpoEl = document.getElementById(`${prefix}-informe-cuerpo`);
+    const btnEl    = document.getElementById(`${prefix}-btn-informe`);
+    const cancelEl = document.getElementById(`${prefix}-btn-informe-cancelar`);
+    if (!asuntoEl || !cuerpoEl || !btnEl) return;
+
+    let editId = null;
+
+    function resetForm() {
+        asuntoEl.value = '';
+        cuerpoEl.value = '';
+        editId = null;
+        btnEl.textContent = 'REGISTRAR INFORME';
+        if (cancelEl) cancelEl.style.display = 'none';
+    }
+
+    btnEl.addEventListener('click', async () => {
+        const asunto = asuntoEl.value.trim();
+        const cuerpo = cuerpoEl.value.trim();
+        if (!asunto || !cuerpo) { showToast('Faltan datos obligatorios', true); return; }
+
+        btnEl.disabled = true;
+        btnEl.textContent = 'GUARDANDO...';
+
+        try {
+            if (editId) {
+                await updateDoc(doc(db, COL_INFORMES, editId), {
+                    asunto,
+                    cuerpo,
+                    fechaEdicion:   Date.now(),
+                    usuarioEdicion: state.currentUser
+                });
+                showToast('✓ Informe actualizado correctamente');
+            } else {
+                await addDoc(collection(db, COL_INFORMES), {
+                    timestamp:      Date.now(),
+                    asunto,
+                    cuerpo,
+                    usuarioCreador: state.currentUser,
+                    fechaCreacion:  Date.now(),
+                    fechaEdicion:   null,
+                    usuarioEdicion: null
+                });
+                showToast('✓ Informe registrado correctamente');
+            }
+            resetForm();
+        } catch (e) {
+            showToast('Error al guardar', true);
+            console.error(e);
+        } finally {
+            btnEl.disabled = false;
+            if (!editId) btnEl.textContent = 'REGISTRAR INFORME';
+        }
+    });
+
+    if (cancelEl) {
+        cancelEl.style.display = 'none';
+        cancelEl.addEventListener('click', resetForm);
+    }
+
+    window[`editarInforme_${prefix}`] = (id) => {
+        const inf = state.informes.find(x => x.firestoreId === id);
+        if (!inf) return;
+        editId = id;
+        asuntoEl.value = inf.asunto || '';
+        cuerpoEl.value = inf.cuerpo || '';
+        btnEl.textContent = 'GUARDAR CAMBIOS';
+        if (cancelEl) cancelEl.style.display = 'block';
+        asuntoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+}
+
+crearModuloInformes('mtto');
+crearModuloInformes('sup');
 
 // ══ SIDEBAR ══
 function renderSidebar() {
@@ -323,8 +442,8 @@ document.getElementById('btn-guardar-parte')?.addEventListener('click', async ()
     const sectorSelect = document.getElementById('campo-sector').value;
     const sectorOtro   = document.getElementById('campo-sector-otro').value.trim();
     const realizada    = document.getElementById('campo-realizada').value.trim();
-    const resp         = document.getElementById('campo-responsable').value.trim();
-    const solicitada   = document.querySelector('input[name="solicitada"]:checked')?.value || 'no';
+    const solicitante  = document.getElementById('campo-solicitante').value.trim();
+    const paroProduccion = document.querySelector('input[name="paroProduccion"]:checked')?.value || 'no';
 
     let sector = sectorSelect;
     if (sectorSelect === 'Otros') {
@@ -346,8 +465,8 @@ document.getElementById('btn-guardar-parte')?.addEventListener('click', async ()
             turno:       state.turnoActivo,
             sector,
             realizada,
-            responsable: resp,
-            solicitada,
+            solicitante,
+            paroProduccion,
             estado:      state.estadoActivo,
             usuario:     state.currentUser
         });
@@ -459,14 +578,14 @@ function showToast(m, err = false) {
 
 // ══ RESET FORMS ══
 function resetFormMtto() {
-    document.getElementById('campo-realizada').value   = '';
-    document.getElementById('campo-responsable').value = '';
-    document.getElementById('campo-sector').value      = '';
-    document.getElementById('campo-sector-otro').value = '';
+    document.getElementById('campo-realizada').value    = '';
+    document.getElementById('campo-solicitante').value  = '';
+    document.getElementById('campo-sector').value       = '';
+    document.getElementById('campo-sector-otro').value  = '';
     document.getElementById('campo-sector-otro-wrap').style.display = 'none';
     document.querySelectorAll('.turno-btn:not(.turno-sup), .estado-btn')
         .forEach(b => b.classList.remove('selected'));
-    const no = document.querySelector('input[name="solicitada"][value="no"]');
+    const no = document.querySelector('input[name="paroProduccion"][value="no"]');
     if (no) no.checked = true;
     state.turnoActivo = null; state.estadoActivo = null;
 }
@@ -495,8 +614,8 @@ window.verParte = (id) => {
     document.getElementById('modal-sector').textContent      = p.sector;
     document.getElementById('modal-meta').textContent        = `${p.fechaCorta} · Por ${p.usuario}`;
     document.getElementById('modal-realizada').textContent   = p.realizada;
-    document.getElementById('modal-responsable').textContent = p.responsable || '—';
-    document.getElementById('modal-solicitada').textContent  = p.solicitada === 'si' ? 'Sí' : 'No';
+    document.getElementById('modal-responsable').textContent = p.solicitante || '—';
+    document.getElementById('modal-solicitada').textContent  = p.paroProduccion === 'si' ? 'Sí' : 'No';
     document.getElementById('modal-turno').textContent       = (p.turno || '').toUpperCase();
     document.getElementById('modal-estado').textContent      = estadoLabels[p.estado] || (p.estado||'').toUpperCase();
     document.getElementById('modal-overlay').style.display   = 'flex';
