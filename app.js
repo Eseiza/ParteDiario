@@ -55,12 +55,12 @@ const state = {
 // ══ GRUPOS DE MANTENIMIENTO ══
 // Se agrupa por el campo "nombre" (el que efectivamente se guarda como "usuario"
 // en cada registro), no por el usuario de login.
-// Grupo 1: JuanManuel (Cappe) y Ignacio (Ledesma)
+// Grupo 1: JuanManuel (Cappelletti) y Ignacio (Ledesma)
 // Grupo 2: Mateo (Piedra) y Matias (Liway)
 // Grupo 3: Manuel (Vidal) y Joaquin (Girard)
 const GROUPS = {
-    "Cappe":   ["Cappe", "Ledesma"],
-    "Ledesma": ["Cappe", "Ledesma"],
+    "Cappelletti":   ["Cappelletti", "Ledesma"],
+    "Ledesma": ["Cappelletti", "Ledesma"],
     "Piedra":  ["Piedra", "Liway"],
     "Liway":   ["Piedra", "Liway"],
     "Vidal":   ["Vidal", "Girard"],
