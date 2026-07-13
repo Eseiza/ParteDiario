@@ -23,8 +23,8 @@
     <div class="field">
       <label>Seleccioná tu rol</label>
       <div class="role-grid">
-        <div class="role-btn" data-role="mantenimiento"><span class="r-name">MANTENIMIENTO</span></div>
-        <div class="role-btn" data-role="supervisor"><span class="r-name">SUPERVISOR</span></div>
+        <div class="role-btn" data-role="mantenimiento"><span class="r-name">MTTO</span></div>
+        <div class="role-btn" data-role="supervisor"><span class="r-name">PRODUCCIÓN</span></div>
         <div class="role-btn" data-role="visualizador"><span class="r-name">VISUALIZADOR</span></div>
       </div>
     </div>
@@ -58,7 +58,7 @@
     </nav>
     <div class="hbadge">
       <span id="carga-nombre">—</span>
-      <span class="role-tag mtto">TÉCNICO</span>
+      <span class="role-tag mtto">MTTO</span>
       <button class="btn-logout" onclick="doLogout()">SALIR</button>
     </div>
   </header>
@@ -182,7 +182,7 @@
     </nav>
     <div class="hbadge">
       <span id="sup-nombre">—</span>
-      <span class="role-tag sup">SUPERVISOR</span>
+      <span class="role-tag sup">PRODUCCIÓN</span>
       <button class="btn-logout" onclick="doLogout()">SALIR</button>
     </div>
   </header>
@@ -384,17 +384,13 @@
         <div class="fi-group"><label>Desde</label><input type="date" id="informes-filtro-desde"></div>
         <div class="fi-group"><label>Hasta</label><input type="date" id="informes-filtro-hasta"></div>
         <div class="fi-group">
-          <label>Usuario</label>
+          <label>Equipo</label>
           <select id="informes-filtro-usuario">
             <option value="">Todos</option>
-            <option value="Speroni">Speroni</option>
-            <option value="Girard">Girard</option>
-            <option value="Vidal">Vidal</option>
-            <option value="Liway">Liway</option>
-            <option value="Piedra">Piedra</option>
-            <option value="Ledesma">Ledesma</option>
-            <option value="Cappe">Cappe</option>
-            <option value="Supervisor">Supervisor</option>
+            <option value="mtto1">MTTO 1</option>
+            <option value="mtto2">MTTO 2</option>
+            <option value="mtto3">MTTO 3</option>
+            <option value="Supervisor">Producción</option>
           </select>
         </div>
         <button class="btn btn-sm" id="informes-btn-filtrar">FILTRAR</button>
