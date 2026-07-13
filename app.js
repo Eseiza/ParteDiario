@@ -30,8 +30,8 @@ const USERS = {
     "Matias":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Liway" },
     "Mateo":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Piedra" },
     "Ignacio":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Ledesma" },
-    "JuanManuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Cappelletti" },
-    "supervisor1": { password: "super123", role: "supervisor",    nombre: "Producción" },
+    "JuanManuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Cappe" },
+    "supervisor1": { password: "super123", role: "supervisor",    nombre: "Supervisor" },
     "admin":       { password: "admin123",      role: "visualizador",  nombre: "Admin" }
 };
 
@@ -55,12 +55,12 @@ const state = {
 // ══ GRUPOS DE MANTENIMIENTO ══
 // Se agrupa por el campo "nombre" (el que efectivamente se guarda como "usuario"
 // en cada registro), no por el usuario de login.
-// Grupo 1: JuanManuel (Cappelletti) y Ignacio (Ledesma)
+// Grupo 1: JuanManuel (Cappe) y Ignacio (Ledesma)
 // Grupo 2: Mateo (Piedra) y Matias (Liway)
 // Grupo 3: Manuel (Vidal) y Joaquin (Girard)
 const GROUPS = {
-    "Cappelletti":   ["Cappelletti", "Ledesma"],
-    "Ledesma": ["Cappelletti", "Ledesma"],
+    "Cappe":   ["Cappe", "Ledesma"],
+    "Ledesma": ["Cappe", "Ledesma"],
     "Piedra":  ["Piedra", "Liway"],
     "Liway":   ["Piedra", "Liway"],
     "Vidal":   ["Vidal", "Girard"],
@@ -71,6 +71,21 @@ const GROUPS = {
 // Si no pertenece a ningún grupo definido, solo ve lo propio.
 function usuariosVisibles() {
     return GROUPS[state.currentUser] || [state.currentUser];
+}
+
+// Equipos de mantenimiento para filtrar en el panel de admin (mtto1 / mtto2 / mtto3)
+const TEAMS = {
+    mtto1: ["Cappe", "Ledesma"],   // Grupo 1: JuanManuel e Ignacio
+    mtto2: ["Piedra", "Liway"],    // Grupo 2: Mateo y Matias
+    mtto3: ["Vidal", "Girard"]     // Grupo 3: Manuel y Joaquin
+};
+const TEAM_LABELS = { mtto1: "MTTO 1", mtto2: "MTTO 2", mtto3: "MTTO 3" };
+
+function equipoDe(nombre) {
+    for (const key in TEAMS) {
+        if (TEAMS[key].includes(nombre)) return TEAM_LABELS[key];
+    }
+    return null;
 }
 
 // ══ FECHA ══
@@ -259,15 +274,20 @@ function buildInformesHtml(arr, prefix) {
         const fc = inf.fechaCreacion ? new Date(inf.fechaCreacion).toLocaleString('es-AR') : '—';
         const fe = inf.fechaEdicion  ? new Date(inf.fechaEdicion).toLocaleString('es-AR')  : null;
         return `
-        <div class="informe-card">
-            <div class="informe-header">
-                <div class="informe-asunto">${inf.asunto}</div>
+        <div class="informe-carta">
+            <div class="carta-membrete">
+                <span class="carta-marca">PARTE DIARIO</span>
+                <span class="carta-fecha">${fc}</span>
+            </div>
+            <div class="carta-asunto-row">
+                <div class="carta-asunto">${inf.asunto}</div>
                 <button type="button" class="btn-editar-informe" onclick="editarInforme_${prefix}('${inf.firestoreId}')">EDITAR</button>
             </div>
-            <div class="informe-meta">
-                De: ${inf.usuarioCreador || '—'} · Creado: ${fc}${fe ? ` · Editado: ${fe} (${inf.usuarioEdicion || '—'})` : ''}
+            <div class="carta-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
+            <div class="carta-firma">
+                <span class="carta-firma-nombre">${inf.usuarioCreador || '—'}</span>
+                ${fe ? `<span class="carta-firma-edit">· editado ${fe} por ${inf.usuarioEdicion || '—'}</span>` : ''}
             </div>
-            <div class="informe-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
         </div>`;
     }).join('');
 }
@@ -284,15 +304,21 @@ function buildInformesHtmlSoloLectura(arr) {
     return arr.map(inf => {
         const fc = inf.fechaCreacion ? new Date(inf.fechaCreacion).toLocaleString('es-AR') : '—';
         const fe = inf.fechaEdicion  ? new Date(inf.fechaEdicion).toLocaleString('es-AR')  : null;
+        const equipo = equipoDe(inf.usuarioCreador);
         return `
-        <div class="informe-card">
-            <div class="informe-header">
-                <div class="informe-asunto">${inf.asunto}</div>
+        <div class="informe-carta">
+            <div class="carta-membrete">
+                <span class="carta-marca">PARTE DIARIO</span>
+                <span class="carta-fecha">${fc}</span>
             </div>
-            <div class="informe-meta">
-                De: ${inf.usuarioCreador || '—'} · Creado: ${fc}${fe ? ` · Editado: ${fe} (${inf.usuarioEdicion || '—'})` : ''}
+            <div class="carta-asunto-row">
+                <div class="carta-asunto">${inf.asunto}</div>
             </div>
-            <div class="informe-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
+            <div class="carta-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
+            <div class="carta-firma">
+                <span class="carta-firma-nombre">${inf.usuarioCreador || '—'}${equipo ? ` (${equipo})` : ''}</span>
+                ${fe ? `<span class="carta-firma-edit">· editado ${fe} por ${inf.usuarioEdicion || '—'}</span>` : ''}
+            </div>
         </div>`;
     }).join('');
 }
@@ -310,12 +336,17 @@ function aplicarFiltrosInformes() {
     const desde   = document.getElementById('informes-filtro-desde').value;
     const hasta   = document.getElementById('informes-filtro-hasta').value;
     const usuario = document.getElementById('informes-filtro-usuario')?.value || '';
+    const equipo  = TEAMS[usuario] || null;
 
     state.informesFiltrados = state.informes.filter(inf => {
         const fecha = new Date(inf.fechaCreacion || inf.timestamp);
         if (desde && fecha < new Date(desde)) return false;
         if (hasta && fecha > new Date(hasta + 'T23:59:59')) return false;
-        if (usuario && inf.usuarioCreador !== usuario) return false;
+        if (equipo) {
+            if (!equipo.includes(inf.usuarioCreador)) return false;
+        } else if (usuario && inf.usuarioCreador !== usuario) {
+            return false;
+        }
         return true;
     });
     renderInformesVis();
