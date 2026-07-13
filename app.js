@@ -30,7 +30,7 @@ const USERS = {
     "Matias":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Liway" },
     "Mateo":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Piedra" },
     "Ignacio":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Ledesma" },
-    "JuanManuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Cappe" },
+    "JuanManuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Cappelletti" },
     "supervisor1": { password: "super123", role: "supervisor",    nombre: "Producción" },
     "admin":       { password: "admin123",      role: "visualizador",  nombre: "Admin" }
 };
