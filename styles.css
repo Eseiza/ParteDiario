@@ -379,56 +379,23 @@ select { cursor: pointer; }
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast.err  { background: #3a1e1a; color: #ff6b57; }
 
-/* ══ INFORME (parte diario) — formato tipo carta ══ */
-.informe-carta {
-  background: #211d17;
-  border: 1px solid var(--border);
-  border-top: 3px solid var(--accent2);
-  padding: 22px 26px;
-  margin-bottom: 16px;
-  position: relative;
-}
-.carta-membrete {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
-  margin-bottom: 16px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #6b5a2e;
-}
-.carta-fecha { color: var(--muted); letter-spacing: 1px; }
-.carta-asunto-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
-.carta-asunto { font-family: var(--font-head); font-size: 24px; letter-spacing: .5px; }
-.carta-cuerpo {
+/* ══ INFORME (parte diario) — tarjeta resumen en listas ══ */
+.informe-card { background: var(--surface); border-left: 4px solid var(--accent2); padding: 16px; margin-bottom: 10px; cursor: pointer; transition: .15s; }
+.informe-card:hover { background: var(--surface2); }
+.informe-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.informe-asunto { font-family: var(--font-head); font-size: 20px; }
+.informe-meta { font-size: 10px; color: var(--muted); margin-top: 6px; font-family: var(--font-mono); }
+.btn-editar-informe { flex-shrink: 0; background: none; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; font-family: var(--font-mono); font-size: 10px; cursor: pointer; transition: .2s; }
+.btn-editar-informe:hover { border-color: var(--accent2); color: var(--accent2); }
+
+/* ══ INFORME — detalle (modal, formato carta) ══ */
+.informe-modal-cuerpo {
   font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.8;
   color: var(--text);
   white-space: pre-wrap;
-  margin-bottom: 20px;
-  padding-left: 2px;
 }
-.carta-firma {
-  display: flex;
-  justify-content: flex-end;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 6px;
-  border-top: 1px dashed var(--border);
-  padding-top: 10px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--muted);
-}
-.carta-firma-nombre { font-family: var(--font-body); font-style: italic; font-size: 15px; color: var(--text); }
-.carta-firma-edit { color: var(--muted); }
-.btn-editar-informe { flex-shrink: 0; background: none; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; font-family: var(--font-mono); font-size: 10px; cursor: pointer; transition: .2s; }
-.btn-editar-informe:hover { border-color: var(--accent2); color: var(--accent2); }
 
 /* ══ MODAL ══ */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.82); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
