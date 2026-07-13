@@ -273,20 +273,15 @@ function buildInformesHtml(arr, prefix) {
     return arr.map(inf => {
         const fc = inf.fechaCreacion ? new Date(inf.fechaCreacion).toLocaleString('es-AR') : '—';
         const fe = inf.fechaEdicion  ? new Date(inf.fechaEdicion).toLocaleString('es-AR')  : null;
+        const esPropio = inf.usuarioCreador === state.currentUser;
         return `
-        <div class="informe-carta">
-            <div class="carta-membrete">
-                <span class="carta-marca">PARTE DIARIO</span>
-                <span class="carta-fecha">${fc}</span>
+        <div class="informe-card" onclick="verInforme('${inf.firestoreId}')">
+            <div class="informe-header">
+                <div class="informe-asunto">${inf.asunto}</div>
+                ${esPropio ? `<button type="button" class="btn-editar-informe" onclick="event.stopPropagation(); editarInforme_${prefix}('${inf.firestoreId}')">EDITAR</button>` : ''}
             </div>
-            <div class="carta-asunto-row">
-                <div class="carta-asunto">${inf.asunto}</div>
-                <button type="button" class="btn-editar-informe" onclick="editarInforme_${prefix}('${inf.firestoreId}')">EDITAR</button>
-            </div>
-            <div class="carta-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
-            <div class="carta-firma">
-                <span class="carta-firma-nombre">${inf.usuarioCreador || '—'}</span>
-                ${fe ? `<span class="carta-firma-edit">· editado ${fe} por ${inf.usuarioEdicion || '—'}</span>` : ''}
+            <div class="informe-meta">
+                De: ${inf.usuarioCreador || '—'} · Creado: ${fc}${fe ? ` · Editado: ${fe}` : ''}
             </div>
         </div>`;
     }).join('');
@@ -306,22 +301,35 @@ function buildInformesHtmlSoloLectura(arr) {
         const fe = inf.fechaEdicion  ? new Date(inf.fechaEdicion).toLocaleString('es-AR')  : null;
         const equipo = equipoDe(inf.usuarioCreador);
         return `
-        <div class="informe-carta">
-            <div class="carta-membrete">
-                <span class="carta-marca">PARTE DIARIO</span>
-                <span class="carta-fecha">${fc}</span>
+        <div class="informe-card" onclick="verInforme('${inf.firestoreId}')">
+            <div class="informe-header">
+                <div class="informe-asunto">${inf.asunto}</div>
             </div>
-            <div class="carta-asunto-row">
-                <div class="carta-asunto">${inf.asunto}</div>
-            </div>
-            <div class="carta-cuerpo">${(inf.cuerpo || '').replace(/\n/g, '<br>')}</div>
-            <div class="carta-firma">
-                <span class="carta-firma-nombre">${inf.usuarioCreador || '—'}${equipo ? ` (${equipo})` : ''}</span>
-                ${fe ? `<span class="carta-firma-edit">· editado ${fe} por ${inf.usuarioEdicion || '—'}</span>` : ''}
+            <div class="informe-meta">
+                De: ${inf.usuarioCreador || '—'}${equipo ? ` (${equipo})` : ''} · Creado: ${fc}${fe ? ` · Editado: ${fe}` : ''}
             </div>
         </div>`;
     }).join('');
 }
+
+// ══ VER INFORME (detalle, formato carta) ══
+window.verInforme = (id) => {
+    const inf = state.informes.find(x => x.firestoreId === id);
+    if (!inf) return;
+    const fc = inf.fechaCreacion ? new Date(inf.fechaCreacion).toLocaleString('es-AR') : '—';
+    const fe = inf.fechaEdicion  ? new Date(inf.fechaEdicion).toLocaleString('es-AR')  : null;
+    const equipo = equipoDe(inf.usuarioCreador);
+
+    let meta = `${fc} · Por ${inf.usuarioCreador || '—'}`;
+    if (equipo) meta += ` (${equipo})`;
+    if (fe) meta += ` · Editado ${fe} por ${inf.usuarioEdicion || '—'}`;
+
+    document.getElementById('modal-informe-asunto').textContent = inf.asunto;
+    document.getElementById('modal-informe-meta').textContent   = meta;
+    document.getElementById('modal-informe-cuerpo').innerHTML   = (inf.cuerpo || '').replace(/\n/g, '<br>');
+    document.getElementById('modal-informe-overlay').style.display = 'flex';
+};
+window.cerrarModalInforme = () => document.getElementById('modal-informe-overlay').style.display = 'none';
 
 document.getElementById('informes-btn-filtrar')?.addEventListener('click', aplicarFiltrosInformes);
 document.getElementById('informes-btn-limpiar')?.addEventListener('click', () => {
