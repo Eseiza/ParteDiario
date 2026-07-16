@@ -96,12 +96,8 @@ const fechaHoy = new Date().toLocaleDateString('es-AR', { weekday:'long', year:'
 });
 
 // ══ LOGIN ══
-document.querySelectorAll('.role-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        state.role = btn.dataset.role;
-    });
+document.getElementById('login-role').addEventListener('change', (e) => {
+    state.role = e.target.value;
 });
 
 document.getElementById('login-btn').addEventListener('click', () => {
