@@ -361,7 +361,12 @@ function aplicarFiltrosInformes() {
 }
 
 // ══ MÓDULO INFORME (compartido entre mantenimiento y supervisor) ══
-function crearModuloInformes(prefix) {
+// Activa una pestaña buscando el botón de navegación por su atributo data-*
+function activarTab(attr, tabId) {
+    document.querySelector(`[${attr}="${tabId}"]`)?.click();
+}
+
+function crearModuloInformes(prefix, tabAttr, tabId) {
     const asuntoEl = document.getElementById(`${prefix}-informe-asunto`);
     const cuerpoEl = document.getElementById(`${prefix}-informe-cuerpo`);
     const btnEl    = document.getElementById(`${prefix}-btn-informe`);
@@ -430,12 +435,13 @@ function crearModuloInformes(prefix) {
         cuerpoEl.value = inf.cuerpo || '';
         btnEl.textContent = 'GUARDAR CAMBIOS';
         if (cancelEl) cancelEl.style.display = 'block';
+        activarTab(tabAttr, tabId);               // salta a la pestaña donde vive el formulario
         asuntoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 }
 
-crearModuloInformes('mtto');
-crearModuloInformes('sup');
+crearModuloInformes('mtto', 'data-ctab', 'tab-informe');
+crearModuloInformes('sup',  'data-stab', 'tab-sup-informe');
 
 // ══ SIDEBAR ══
 function renderSidebar() {
