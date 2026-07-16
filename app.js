@@ -5,13 +5,14 @@ import {
 
 // ══ CONFIG FIREBASE ══
 const firebaseConfig = {
-    apiKey:            "AIzaSyAmSTEfzcgGx-NbT_FCBDvECuNl0A2jbeY",
-    authDomain:        "partediarioromero.firebaseapp.com",
-    projectId:         "partediarioromero",
-    storageBucket:     "partediarioromero.firebasestorage.app",
-    messagingSenderId: "146566530037",
-    appId:             "1:146566530037:web:143b76fe54a9db05c1d6bc",
-    measurementId:     "G-REXHZQ7TXY"
+  apiKey: "AIzaSyAmSTEfzcgGx-NbT_FCBDvECuNl0A2jbeY",
+  authDomain: "partediarioromero.firebaseapp.com",
+  databaseURL: "https://partediarioromero-default-rtdb.firebaseio.com",
+  projectId: "partediarioromero",
+  storageBucket: "partediarioromero.firebasestorage.app",
+  messagingSenderId: "146566530037",
+  appId: "1:146566530037:web:143b76fe54a9db05c1d6bc",
+  measurementId: "G-REXHZQ7TXY"
 };
 
 const app = initializeApp(firebaseConfig);
