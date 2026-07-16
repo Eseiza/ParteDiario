@@ -43,6 +43,13 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-body);
   box-shadow: 0 24px 60px rgba(0,0,0,.45);
 }
 
+/* ══ LOGIN — bordes redondeados en campos ══ */
+.login-box input[type="text"],
+.login-box input[type="password"],
+.login-box select {
+  border-radius: 8px;
+}
+
 /* ══ ROLE / TURNO / ESTADO / TIPO GRIDS — bordes redondeados ══ */
 .role-btn, .turno-btn, .estado-btn, .tipo-btn {
   border-radius: 8px;
