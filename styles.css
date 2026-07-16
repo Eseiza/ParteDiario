@@ -37,6 +37,21 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-body);
   display: block;
 }
 
+/* ══ LOGIN — bordes redondeados ══ */
+.login-box {
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.45);
+}
+
+/* ══ ROLE / TURNO / ESTADO / TIPO GRIDS — bordes redondeados ══ */
+.role-btn, .turno-btn, .estado-btn, .tipo-btn {
+  border-radius: 8px;
+}
+
+.role-btn.selected, .turno-btn.selected {
+  border-radius: 8px;
+}
+
 /* ══ LOGIN ══ */
 #screen-login { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 .login-box { background: var(--surface); border-top: 4px solid var(--accent); padding: 36px 28px; width: 100%; max-width: 400px; }
