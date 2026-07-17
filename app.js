@@ -24,7 +24,7 @@ const COL_INFORMES  = "informes";
 
 // ══ USUARIOS ══
 const USERS = {
-    "mtto":       { password: "mtto1234",  role: "mantenimiento", nombre: "" },
+    "mtto":       { password: "mtto12345",  role: "mantenimiento", nombre: "mtto" },
     "Javier":       { password: "mtto12345",  role: "mantenimiento", nombre: "Speroni" },
     "Joaquin":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Girard" },
     "Manuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Vidal" },
@@ -60,8 +60,8 @@ const state = {
 // Grupo 2: Mateo (Piedra) y Matias (Liway)
 // Grupo 3: Manuel (Vidal) y Joaquin (Girard)
 const GROUPS = {
-    "Cappe":   ["Cappe", "Ledesma"],
-    "Ledesma": ["Cappe", "Ledesma"],
+    "Cappelletti":   ["Cappelletti", "Ledesma"],
+    "Ledesma": ["Cappelletti", "Ledesma"],
     "Piedra":  ["Piedra", "Liway"],
     "Liway":   ["Piedra", "Liway"],
     "Vidal":   ["Vidal", "Girard"],
@@ -76,7 +76,7 @@ function usuariosVisibles() {
 
 // Equipos de mantenimiento para filtrar en el panel de admin (mtto1 / mtto2 / mtto3)
 const TEAMS = {
-    mtto1: ["Cappe", "Ledesma"],   // Grupo 1: JuanManuel e Ignacio
+    mtto1: ["Cappelletti", "Ledesma"],   // Grupo 1: JuanManuel e Ignacio
     mtto2: ["Piedra", "Liway"],    // Grupo 2: Mateo y Matias
     mtto3: ["Vidal", "Girard"]     // Grupo 3: Manuel y Joaquin
 };
