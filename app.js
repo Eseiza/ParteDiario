@@ -31,7 +31,7 @@ const USERS = {
     "Matias":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Liway" },
     "Mateo":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Piedra" },
     "Ignacio":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Ledesma" },
-    "JuanManuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Cappe" },
+    "JuanManuel":       { password: "mttoRomero",  role: "mantenimiento", nombre: "Cappelletti" },
     "supervisor1": { password: "super123", role: "supervisor",    nombre: "Supervisor" },
     "admin":       { password: "admin123",      role: "visualizador",  nombre: "Admin" }
 };
@@ -80,7 +80,7 @@ const TEAMS = {
     mtto2: ["Piedra", "Liway"],    // Grupo 2: Mateo y Matias
     mtto3: ["Vidal", "Girard"]     // Grupo 3: Manuel y Joaquin
 };
-const TEAM_LABELS = { mtto1: "MTTO 1", mtto2: "MTTO 2", mtto3: "MTTO 3" };
+const TEAM_LABELS = { mtto1: "Ledesma-Cappelletti", mtto2: "Piedra-Liway", mtto3: "Girard-Vidal" };
 
 function equipoDe(nombre) {
     for (const key in TEAMS) {
