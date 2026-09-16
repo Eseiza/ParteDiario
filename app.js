@@ -36,9 +36,21 @@ const USERS = {
     "admin":       { password: "admin123",      role: "visualizador",  nombre: "Admin" }
 };
 
+// Usuarios (login) que además del autor pueden editar cualquier parte
+const EDIT_PRIVILEGED_USERS = ["mtto", "Javier", "admin"];
+
+// Puede editar el parte "p" quien lo cargó, o alguno de los usuarios con
+// permiso ampliado (mtto, Javier, admin), siempre que no esté completado.
+function puedeEditarParte(p) {
+    return !!p
+        && (p.usuario === state.currentUser || EDIT_PRIVILEGED_USERS.includes(state.username))
+        && p.estado !== 'completado';
+}
+
 const state = {
     role: null,
     currentUser: '',
+    username: '',
     partes: [],
     partesFiltrados: [],
     novedades: [],
@@ -111,6 +123,7 @@ document.getElementById('login-btn').addEventListener('click', () => {
     }
 
     state.currentUser = user.nombre;
+    state.username = username;
     document.getElementById('screen-login').style.display = 'none';
 
     if (state.role === 'mantenimiento') {
@@ -201,17 +214,23 @@ function buildPartesHtml(arr) {
         'en-proceso':  'EN PROCESO',
         'en-progreso': 'EN PROCESO'
     };
-    return arr.map(p => `
+    return arr.map(p => {
+        const puedeEditar = puedeEditarParte(p);
+        return `
         <div class="parte-card estado-${p.estado}" onclick="verParte('${p.firestoreId}')">
             <div class="parte-header">
                 <div class="parte-sector">${p.sector}</div>
-                <div class="parte-estado ${p.estado}">${labels[p.estado] || p.estado}</div>
+                <div style="display:flex;align-items:center;gap:6px">
+                    <div class="parte-estado ${p.estado}">${labels[p.estado] || p.estado}</div>
+                    ${puedeEditar ? `<button type="button" class="btn-editar-informe" onclick="event.stopPropagation(); editarParte('${p.firestoreId}')">EDITAR</button>` : ''}
+                </div>
             </div>
             <div style="font-size:10px;color:var(--muted);margin:4px 0;font-family:var(--font-mono)">
                 ${p.fechaCorta} · TURNO ${(p.turno||'').toUpperCase()}
             </div>
             <div style="font-size:13px;">${p.realizada}</div>
-        </div>`).join('');
+        </div>`;
+    }).join('');
 }
 
 // ══ RENDER NOVEDADES ══
@@ -588,25 +607,42 @@ document.getElementById('btn-guardar-parte')?.addEventListener('click', async ()
     btn.textContent = 'GUARDANDO...';
 
     try {
-        await addDoc(collection(db, COL_PARTES), {
-            timestamp:   Date.now(),
-            fechaCorta:  new Date().toLocaleDateString('es-AR'),
-            turno:       state.turnoActivo,
-            sector,
-            realizada,
-            solicitante,
-            paroProduccion,
-            estado:      state.estadoActivo,
-            usuario:     state.currentUser
-        });
-        showToast('✓ Parte registrado correctamente');
+        if (editPartId) {
+            const original = state.partes.find(x => x.firestoreId === editPartId);
+            if (!puedeEditarParte(original)) {
+                showToast('No podés editar este parte', true);
+            } else {
+                await updateDoc(doc(db, COL_PARTES, editPartId), {
+                    turno: state.turnoActivo,
+                    sector,
+                    realizada,
+                    solicitante,
+                    paroProduccion,
+                    estado: state.estadoActivo
+                });
+                showToast('✓ Parte actualizado correctamente');
+            }
+        } else {
+            await addDoc(collection(db, COL_PARTES), {
+                timestamp:   Date.now(),
+                fechaCorta:  new Date().toLocaleDateString('es-AR'),
+                turno:       state.turnoActivo,
+                sector,
+                realizada,
+                solicitante,
+                paroProduccion,
+                estado:      state.estadoActivo,
+                usuario:     state.currentUser
+            });
+            showToast('✓ Parte registrado correctamente');
+        }
         resetFormMtto();
     } catch (e) {
         showToast('Error al guardar', true);
         console.error(e);
     } finally {
         btn.disabled = false;
-        btn.textContent = 'REGISTRAR PARTE';
+        if (!editPartId) btn.textContent = 'REGISTRAR PARTE';
     }
 });
 
@@ -717,7 +753,64 @@ function resetFormMtto() {
     const no = document.querySelector('input[name="paroProduccion"][value="no"]');
     if (no) no.checked = true;
     state.turnoActivo = null; state.estadoActivo = null;
+
+    editPartId = null;
+    const btnGuardar = document.getElementById('btn-guardar-parte');
+    const btnCancelar = document.getElementById('btn-cancelar-parte');
+    if (btnGuardar) btnGuardar.textContent = 'REGISTRAR PARTE';
+    if (btnCancelar) btnCancelar.style.display = 'none';
 }
+
+// ══ EDITAR PARTE (solo el propio autor, y solo si no está completada) ══
+let editPartId = null;
+
+window.editarParte = (id) => {
+    const p = state.partes.find(x => x.firestoreId === id);
+    if (!p) return;
+    if (!puedeEditarParte(p)) {
+        showToast('No podés editar este parte', true);
+        return;
+    }
+
+    editPartId = id;
+
+    document.getElementById('campo-solicitante').value = p.solicitante || '';
+    document.getElementById('campo-realizada').value   = p.realizada || '';
+
+    const sectoresConocidos = Array.from(document.getElementById('campo-sector').options).map(o => o.value);
+    if (sectoresConocidos.includes(p.sector)) {
+        document.getElementById('campo-sector').value = p.sector;
+        document.getElementById('campo-sector-otro-wrap').style.display = 'none';
+    } else {
+        document.getElementById('campo-sector').value = 'Otros';
+        document.getElementById('campo-sector-otro-wrap').style.display = 'block';
+        document.getElementById('campo-sector-otro').value = p.sector || '';
+    }
+
+    const paro = document.querySelector(`input[name="paroProduccion"][value="${p.paroProduccion === 'si' ? 'si' : 'no'}"]`);
+    if (paro) paro.checked = true;
+
+    document.querySelectorAll('.turno-btn:not(.turno-sup)').forEach(b => {
+        b.classList.toggle('selected', b.dataset.turno === p.turno);
+    });
+    state.turnoActivo = p.turno || null;
+
+    const estadoNorm = p.estado === 'en-progreso' ? 'en-proceso' : p.estado;
+    document.querySelectorAll('.estado-btn').forEach(b => {
+        b.classList.toggle('selected', b.dataset.estado === estadoNorm);
+    });
+    state.estadoActivo = estadoNorm || null;
+
+    const btnGuardar = document.getElementById('btn-guardar-parte');
+    const btnCancelar = document.getElementById('btn-cancelar-parte');
+    if (btnGuardar) btnGuardar.textContent = 'GUARDAR CAMBIOS';
+    if (btnCancelar) btnCancelar.style.display = 'block';
+
+    activarTab('data-ctab', 'tab-nuevo');
+    document.getElementById('campo-realizada').scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+document.getElementById('btn-cancelar-parte')?.addEventListener('click', resetFormMtto);
 
 function resetFormSup() {
     document.getElementById('sup-descripcion').value = '';
@@ -747,9 +840,86 @@ window.verParte = (id) => {
     document.getElementById('modal-solicitada').textContent  = p.paroProduccion === 'si' ? 'Sí' : 'No';
     document.getElementById('modal-turno').textContent       = (p.turno || '').toUpperCase();
     document.getElementById('modal-estado').textContent      = estadoLabels[p.estado] || (p.estado||'').toUpperCase();
+
+    // Puede editar el propio autor, o los usuarios con permiso ampliado
+    // (mtto, Javier, admin), siempre que la tarea no esté completada.
+    const btnEditar = document.getElementById('modal-btn-editar-parte');
+    const editWrap  = document.getElementById('modal-edit-wrap');
+    if (editWrap) editWrap.style.display = 'none';
+    const puedeEditar = puedeEditarParte(p);
+    if (btnEditar) {
+        btnEditar.style.display = puedeEditar ? 'block' : 'none';
+        btnEditar.onclick = () => {
+            if (state.role === 'mantenimiento') {
+                // El usuario tiene su propia pantalla de carga: reutilizamos ese formulario.
+                cerrarModal();
+                editarParte(id);
+            } else {
+                // Usuarios sin pantalla de carga (ej. admin): edición dentro del mismo modal.
+                abrirEdicionEnModal(id);
+            }
+        };
+    }
+
     document.getElementById('modal-overlay').style.display   = 'flex';
 };
 window.cerrarModal = () => document.getElementById('modal-overlay').style.display = 'none';
+
+// ══ EDICIÓN DE PARTE DESDE EL MODAL (usuarios sin pantalla de carga propia) ══
+function abrirEdicionEnModal(id) {
+    const p = state.partes.find(x => x.firestoreId === id);
+    if (!p || !puedeEditarParte(p)) {
+        showToast('No podés editar este parte', true);
+        return;
+    }
+
+    document.getElementById('modal-edit-realizada').value   = p.realizada || '';
+    document.getElementById('modal-edit-responsable').value = p.solicitante || '';
+    const paro = document.querySelector(`input[name="modal-edit-paro"][value="${p.paroProduccion === 'si' ? 'si' : 'no'}"]`);
+    if (paro) paro.checked = true;
+    document.getElementById('modal-edit-turno').value  = p.turno || 'mañana';
+    document.getElementById('modal-edit-estado').value = p.estado === 'en-progreso' ? 'en-proceso' : (p.estado || 'pendiente');
+
+    document.getElementById('modal-btn-editar-parte').style.display = 'none';
+    document.getElementById('modal-edit-wrap').style.display = 'block';
+
+    const btnGuardar  = document.getElementById('modal-edit-guardar');
+    const btnCancelar = document.getElementById('modal-edit-cancelar');
+
+    btnCancelar.onclick = () => cerrarModal();
+
+    btnGuardar.onclick = async () => {
+        const realizada   = document.getElementById('modal-edit-realizada').value.trim();
+        const solicitante = document.getElementById('modal-edit-responsable').value.trim();
+        const paroSel     = document.querySelector('input[name="modal-edit-paro"]:checked')?.value || 'no';
+        const turno       = document.getElementById('modal-edit-turno').value;
+        const estado      = document.getElementById('modal-edit-estado').value;
+
+        if (!realizada) { showToast('Faltan datos obligatorios', true); return; }
+
+        const original = state.partes.find(x => x.firestoreId === id);
+        if (!puedeEditarParte(original)) {
+            showToast('No podés editar este parte', true);
+            return;
+        }
+
+        btnGuardar.disabled = true;
+        btnGuardar.textContent = 'GUARDANDO...';
+        try {
+            await updateDoc(doc(db, COL_PARTES, id), {
+                turno, realizada, solicitante, paroProduccion: paroSel, estado
+            });
+            showToast('✓ Parte actualizado correctamente');
+            cerrarModal();
+        } catch (e) {
+            showToast('Error al guardar', true);
+            console.error(e);
+        } finally {
+            btnGuardar.disabled = false;
+            btnGuardar.textContent = 'GUARDAR CAMBIOS';
+        }
+    };
+}
 
 // ══ VER NOVEDAD ══
 window.verNovedad = (id) => {
