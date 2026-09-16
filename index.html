@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -128,7 +128,10 @@
           </div>
         </div>
       </div>
-      <button class="btn btn-green" id="btn-guardar-parte">REGISTRAR PARTE</button>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-green" id="btn-guardar-parte" style="flex:1; width:auto;">REGISTRAR PARTE</button>
+        <button class="btn" id="btn-cancelar-parte" style="display:none; flex:0 0 140px; width:auto;">CANCELAR</button>
+      </div>
     </div>
   </div>
 
@@ -450,6 +453,46 @@
       <div class="modal-badges">
         <span class="modal-badge" id="modal-turno">—</span>
         <span class="modal-badge" id="modal-estado">—</span>
+      </div>
+      <button type="button" class="btn-editar-informe" id="modal-btn-editar-parte" style="display:none; margin-top:14px;">EDITAR PARTE</button>
+
+      <!-- Edición inline (para usuarios sin pantalla de carga propia, ej. admin) -->
+      <div id="modal-edit-wrap" style="display:none; margin-top:14px;">
+        <div class="field">
+          <label>Tarea Realizada</label>
+          <textarea id="modal-edit-realizada"></textarea>
+        </div>
+        <div class="field">
+          <label>Persona Solicitante</label>
+          <input type="text" id="modal-edit-responsable" placeholder="Nombre">
+        </div>
+        <div class="field">
+          <label>¿Se paró la producción?</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="modal-edit-paro" value="si"> Sí</label>
+            <label class="radio-label"><input type="radio" name="modal-edit-paro" value="no"> No</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Turno</label>
+          <select id="modal-edit-turno">
+            <option value="mañana">MAÑANA</option>
+            <option value="tarde">TARDE</option>
+            <option value="noche">NOCHE</option>
+          </select>
+        </div>
+        <div class="field mb-0">
+          <label>Estado del Trabajo</label>
+          <select id="modal-edit-estado">
+            <option value="completado">COMPLETADO</option>
+            <option value="en-proceso">EN PROCESO</option>
+            <option value="pendiente">PENDIENTE</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn btn-green" id="modal-edit-guardar" style="flex:1; width:auto;">GUARDAR CAMBIOS</button>
+          <button class="btn" id="modal-edit-cancelar" style="flex:0 0 140px; width:auto;">CANCELAR</button>
+        </div>
       </div>
     </div>
   </div>
