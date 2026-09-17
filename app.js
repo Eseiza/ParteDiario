@@ -80,6 +80,9 @@ const GROUPS = {
     "Girard":  ["Vidal", "Girard"]
 };
 
+// Todos los "nombre" (los que se guardan en cada registro como "usuario") del equipo de mantenimiento
+const ALL_MTTO_NOMBRES = Object.values(USERS).filter(u => u.role === 'mantenimiento').map(u => u.nombre);
+
 // Usuarios que puede ver el usuario actual en su historial (él mismo + compañero de grupo).
 // Si no pertenece a ningún grupo definido, solo ve lo propio.
 function usuariosVisibles() {
@@ -129,6 +132,10 @@ document.getElementById('login-btn').addEventListener('click', () => {
     if (state.role === 'mantenimiento') {
         document.getElementById('screen-carga').style.display = 'block';
         document.getElementById('carga-nombre').textContent = user.nombre;
+        if (state.username === 'Javier') {
+            const navTodos = document.getElementById('nav-mtto-todos');
+            if (navTodos) navTodos.classList.remove('hidden-tab');
+        }
         suscribirPartes();
         suscribirInformes();
 
@@ -204,6 +211,10 @@ function renderPartes() {
         listCarga.innerHTML = buildPartesHtml(visibles);
     }
     if (listVis) listVis.innerHTML = buildPartesHtml(state.partesFiltrados);
+
+    // Pestaña extra de Javier: todos los partes de mantenimiento, sin filtrar
+    const listMttoTodos = document.getElementById('mtto-todos-partes-list');
+    if (listMttoTodos) listMttoTodos.innerHTML = buildPartesHtml(state.partesFiltrados);
 }
 
 function buildPartesHtml(arr) {
@@ -275,6 +286,10 @@ function renderInformes() {
         const visibles = state.informes.filter(inf => usuariosVisibles().includes(inf.usuarioCreador));
         listMtto.innerHTML = buildInformesHtml(visibles, 'mtto');
     }
+
+    // Pestaña extra de Javier: todos los informes, sin filtrar
+    const listMttoTodos = document.getElementById('mtto-todos-informes-list');
+    if (listMttoTodos) listMttoTodos.innerHTML = buildInformesHtml(state.informes, 'mtto');
 
     // Supervisor: ve todos los informes (rol de supervisión)
     const listSup = document.getElementById('sup-informes-list');
@@ -568,6 +583,17 @@ document.querySelectorAll('[data-ctab]').forEach(btn => {
         });
         const target = document.getElementById(tabId);
         if (target) { target.style.display = 'block'; target.classList.add('active'); }
+    });
+});
+
+// ══ SUB-NAV "PARTES MTTO" (Javier): alternar Partes / Informes ══
+document.querySelectorAll('#tab-mtto-todos [data-mtsub]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#tab-mtto-todos [data-mtsub]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('#tab-mtto-todos [id$="-panel"]').forEach(p => p.style.display = 'none');
+        const target = document.getElementById(btn.dataset.mtsub);
+        if (target) target.style.display = 'block';
     });
 });
 
