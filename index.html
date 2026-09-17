@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -56,6 +56,7 @@
       <div class="vis-nav-btn active" data-ctab="tab-nuevo">NUEVO PARTE</div>
       <div class="vis-nav-btn" data-ctab="tab-informe">INFORME</div>
       <div class="vis-nav-btn" data-ctab="tab-historial-carga">HISTORIAL</div>
+      <div class="vis-nav-btn hidden-tab" data-ctab="tab-mtto-todos" id="nav-mtto-todos">PARTES MTTO</div>
     </nav>
     <div class="hbadge">
       <span id="carga-nombre">—</span>
@@ -165,6 +166,24 @@
 
       <div class="list-label" style="margin-top:24px">PARTE DIARIO</div>
       <div id="mtto-informes-list"></div>
+    </div>
+  </div>
+
+  <!-- Vista completa (todo el equipo de mantenimiento) — solo para Javier -->
+  <div id="tab-mtto-todos" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="sub-nav">
+        <div class="sub-nav-btn active" data-mtsub="mtto-todos-partes-panel">PARTES</div>
+        <div class="sub-nav-btn" data-mtsub="mtto-todos-informes-panel">INFORMES</div>
+      </div>
+
+      <div id="mtto-todos-partes-panel">
+        <div id="mtto-todos-partes-list"></div>
+      </div>
+
+      <div id="mtto-todos-informes-panel" style="display:none;">
+        <div id="mtto-todos-informes-list"></div>
+      </div>
     </div>
   </div>
 </div>
