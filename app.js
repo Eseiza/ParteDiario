@@ -60,6 +60,7 @@ const state = {
     estadoActivo: null,
     supTurno:     null,
     supTipo:      null,
+    alcanceHistorial: 'grupo', // 'grupo' | 'individual' | 'todos' — a qué registros accede mantenimiento en su historial
     unsub:    null,
     unsubNov: null,
     unsubInformes: null
@@ -89,6 +90,14 @@ function usuariosVisibles() {
     return GROUPS[state.currentUser] || [state.currentUser];
 }
 
+// Según el alcance elegido en el select de historial (grupo / individual / todos),
+// devuelve la lista de "nombre" a mostrar, o null si no hay que filtrar (todos).
+function usuariosSegunAlcance() {
+    if (state.alcanceHistorial === 'individual') return [state.currentUser];
+    if (state.alcanceHistorial === 'todos') return null;
+    return usuariosVisibles(); // 'grupo' (default)
+}
+
 // Equipos de mantenimiento para filtrar en el panel de admin (mtto1 / mtto2 / mtto3)
 const TEAMS = {
     mtto1: ["Cappelletti", "Ledesma"],   // Grupo 1: JuanManuel e Ignacio
@@ -114,6 +123,13 @@ const fechaHoy = new Date().toLocaleDateString('es-AR', { weekday:'long', year:'
 // ══ LOGIN ══
 document.getElementById('login-role').addEventListener('change', (e) => {
     state.role = e.target.value;
+});
+
+// Select de alcance en el historial de mantenimiento (grupo / individual / todos)
+document.getElementById('historial-alcance')?.addEventListener('change', (e) => {
+    state.alcanceHistorial = e.target.value;
+    renderPartes();
+    renderInformes();
 });
 
 document.getElementById('login-btn').addEventListener('click', () => {
@@ -204,10 +220,14 @@ function renderPartes() {
     const listVis   = document.getElementById('partes-list');
 
     if (listCarga) {
-        // Mantenimiento solo ve lo propio + compañero de grupo en su historial
-        const visibles = state.role === 'mantenimiento'
-            ? state.partesFiltrados.filter(p => usuariosVisibles().includes(p.usuario))
-            : state.partesFiltrados;
+        // Mantenimiento ve su historial según el alcance elegido (grupo / individual / todos)
+        let visibles = state.partesFiltrados;
+        if (state.role === 'mantenimiento') {
+            const permitidos = usuariosSegunAlcance();
+            visibles = permitidos
+                ? state.partesFiltrados.filter(p => permitidos.includes(p.usuario))
+                : state.partesFiltrados;
+        }
         listCarga.innerHTML = buildPartesHtml(visibles);
     }
     if (listVis) listVis.innerHTML = buildPartesHtml(state.partesFiltrados);
@@ -280,10 +300,13 @@ function buildNovedadesHtml(arr) {
 
 // ══ RENDER INFORMES ══
 function renderInformes() {
-    // Mantenimiento: solo ve sus informes + los del compañero de grupo
+    // Mantenimiento: ve sus informes según el alcance elegido (grupo / individual / todos)
     const listMtto = document.getElementById('mtto-informes-list');
     if (listMtto) {
-        const visibles = state.informes.filter(inf => usuariosVisibles().includes(inf.usuarioCreador));
+        const permitidos = usuariosSegunAlcance();
+        const visibles = permitidos
+            ? state.informes.filter(inf => permitidos.includes(inf.usuarioCreador))
+            : state.informes;
         listMtto.innerHTML = buildInformesHtml(visibles, 'mtto');
     }
 
