@@ -56,6 +56,7 @@
       <div class="vis-nav-btn active" data-ctab="tab-nuevo">NUEVO PARTE</div>
       <div class="vis-nav-btn" data-ctab="tab-informe">INFORME</div>
       <div class="vis-nav-btn" data-ctab="tab-historial-carga">HISTORIAL</div>
+      <div class="vis-nav-btn" data-ctab="tab-mtto-novedades">NOVEDADES</div>
       <div class="vis-nav-btn hidden-tab" data-ctab="tab-mtto-todos" id="nav-mtto-todos">PARTES MTTO</div>
     </nav>
     <div class="hbadge">
@@ -180,6 +181,14 @@
     </div>
   </div>
 
+  <!-- Novedades de producción: mantenimiento puede comentar y actualizar el estado -->
+  <div id="tab-mtto-novedades" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="list-label">NOVEDADES DE PRODUCCIÓN</div>
+      <div id="mtto-novedades-list"></div>
+    </div>
+  </div>
+
   <!-- Vista completa (todo el equipo de mantenimiento) — solo para Javier -->
   <div id="tab-mtto-todos" class="vis-panel" style="display:none;">
     <div class="app-content">
@@ -223,6 +232,7 @@
 
   <div id="tab-sup-nuevo" class="vis-panel active">
     <div class="app-content">
+      <div class="edit-banner" id="edit-nov-banner" style="display:none;">✎ ESTÁS EDITANDO UNA NOVEDAD YA REGISTRADA</div>
       <div class="section-header">
         <div class="section-title section-title-sup">NOVEDAD DE TURNO</div>
         <div class="fecha-badge" id="fecha-sup">—</div>
@@ -284,6 +294,7 @@
       </div>
 
       <button class="btn btn-amber" id="btn-guardar-novedad">REGISTRAR NOVEDAD</button>
+      <button class="btn btn-outline" id="btn-cancelar-novedad" style="display:none;margin-top:8px">CANCELAR EDICIÓN</button>
     </div>
   </div>
 
@@ -346,7 +357,7 @@
 
   <!-- TAB: PARTES MTTO -->
   <div id="tab-partes" class="vis-panel active">
-    <div class="vis-two-col">
+    <div class="vis-two-col vis-one-col">
       <div class="vis-col-main">
         <div class="kpi-row">
           <div class="kpi"><div class="kpi-val" id="kpi-total">0</div><div class="kpi-label">Total</div></div>
@@ -386,21 +397,6 @@
         <div id="partes-list"></div>
       </div>
 
-      <aside class="vis-sidebar">
-        <div class="sidebar-block">
-          <div class="sidebar-label">POR SECTOR</div>
-          <div id="sidebar-sectores"></div>
-        </div>
-        <div class="sidebar-block">
-          <div class="sidebar-label amber">ÚLTIMAS NOVEDADES</div>
-          <div id="sidebar-novedades-recientes"></div>
-          <div class="ver-todas" onclick="switchToTab('tab-novedades')">ver todas →</div>
-        </div>
-        <div class="sidebar-block">
-          <div class="sidebar-label">RESUMEN SEMANA</div>
-          <div id="sidebar-resumen"></div>
-        </div>
-      </aside>
     </div>
   </div>
 
@@ -461,6 +457,21 @@
         <div class="card chart-card"><div class="card-title">POR TIPO</div><canvas id="chart-tipos"></canvas></div>
         <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-nov-sectores"></canvas></div>
       </div>
+
+      <div class="stats-side-grid">
+        <div class="card sidebar-block">
+          <div class="sidebar-label amber">ÚLTIMAS NOVEDADES</div>
+          <div id="sidebar-novedades-recientes"></div>
+          <div class="ver-todas" onclick="switchToTab('tab-novedades')">ver todas →</div>
+        </div>
+        <div class="card sidebar-block">
+          <div class="sidebar-label">RESUMEN SEMANA</div>
+          <div id="sidebar-resumen"></div>
+        </div>
+      </div>
+
+      <div class="stats-block-title" style="margin-top:32px">DETALLE POR SECTOR</div>
+      <div class="card" id="stats-sectores-list"></div>
     </div>
   </div>
 
@@ -503,21 +514,23 @@
             <label class="radio-label"><input type="radio" name="modal-edit-paro" value="no"> No</label>
           </div>
         </div>
-        <div class="field">
-          <label>Turno</label>
-          <select id="modal-edit-turno">
-            <option value="mañana">MAÑANA</option>
-            <option value="tarde">TARDE</option>
-            <option value="noche">NOCHE</option>
-          </select>
-        </div>
-        <div class="field mb-0">
-          <label>Estado del Trabajo</label>
-          <select id="modal-edit-estado">
-            <option value="completado">COMPLETADO</option>
-            <option value="en-proceso">EN PROCESO</option>
-            <option value="pendiente">PENDIENTE</option>
-          </select>
+        <div class="modal-edit-grid">
+          <div class="field">
+            <label>Turno</label>
+            <select id="modal-edit-turno">
+              <option value="mañana">MAÑANA</option>
+              <option value="tarde">TARDE</option>
+              <option value="noche">NOCHE</option>
+            </select>
+          </div>
+          <div class="field mb-0">
+            <label>Estado del Trabajo</label>
+            <select id="modal-edit-estado">
+              <option value="completado">COMPLETADO</option>
+              <option value="en-proceso">EN PROCESO</option>
+              <option value="pendiente">PENDIENTE</option>
+            </select>
+          </div>
         </div>
         <div style="display:flex; gap:10px; margin-top:10px;">
           <button class="btn btn-green" id="modal-edit-guardar" style="flex:1; width:auto;">GUARDAR CAMBIOS</button>
@@ -545,6 +558,30 @@
       <div class="modal-badges">
         <span class="modal-badge" id="modal-nov-turno">—</span>
         <span class="modal-badge modal-badge-tipo" id="modal-nov-tipo">—</span>
+      </div>
+
+      <button type="button" class="btn btn-amber" id="modal-nov-btn-editar" style="display:none;">✎ EDITAR NOVEDAD</button>
+
+      <div class="modal-field">
+        <div class="modal-label">COMENTARIOS</div>
+        <div id="modal-nov-comentarios"></div>
+      </div>
+
+      <!-- Solo visible para mantenimiento -->
+      <div id="modal-nov-mtto" style="display:none;">
+        <div class="field">
+          <label>Actualizar estado</label>
+          <select id="modal-nov-estado">
+            <option value="no">PENDIENTE</option>
+            <option value="en-curso">SE INICIÓ</option>
+            <option value="si">RESUELTO</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Agregar comentario</label>
+          <textarea id="modal-nov-comentario" placeholder="Escribí un comentario..." style="min-height:80px"></textarea>
+        </div>
+        <button class="btn btn-green" id="modal-nov-guardar">GUARDAR</button>
       </div>
     </div>
   </div>
