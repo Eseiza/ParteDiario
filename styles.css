@@ -184,15 +184,6 @@ select { cursor: pointer; }
 .vis-nav::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
 .vis-nav::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-/* En celular: arranca alineado a la izquierda, se puede deslizar, y le hacemos
-   lugar al header para que la barra de scroll no quede tapada */
-@media (max-width: 700px) {
-  .vis-nav { justify-content: flex-start; align-items: flex-start; padding-bottom: 6px; }
-  .vis-nav-btn { padding: 0 14px; height: 46px; }
-  .vis-header { height: 58px; align-items: flex-start; padding-top: 0; }
-  .vis-header-left, .vis-header .hbadge { height: 52px; display: flex; align-items: center; }
-}
-
 .vis-nav-btn {
   display: flex;
   align-items: center;
@@ -221,6 +212,30 @@ select { cursor: pointer; }
 
 /* Tab de nav oculto hasta habilitarse por JS (evita romper el flex del header) */
 .vis-nav-btn.hidden-tab { display: none !important; }
+
+/* En celular: el nav baja a su propia fila, debajo del logo y el badge,
+   ocupando todo el ancho, con scroll horizontal propio y su barra visible. */
+@media (max-width: 700px) {
+  .vis-header {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: 0;
+    padding: 10px 16px 0;
+  }
+  .vis-header-left { order: 1; }
+  .vis-header .hbadge { order: 2; }
+  .vis-nav {
+    order: 3;
+    flex: 0 0 100%;
+    width: 100%;
+    justify-content: flex-start;
+    height: auto;
+    margin-top: 10px;
+    padding-bottom: 8px;
+    border-top: 1px solid #2a2a2a;
+  }
+  .vis-nav-btn { height: 42px; padding: 0 14px; }
+}
 
 /* Sub-barra interna (ej: Partes / Informes dentro de "PARTES MTTO") */
 .sub-nav {
