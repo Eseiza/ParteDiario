@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import {
-    getFirestore, collection, addDoc, updateDoc, doc, onSnapshot, query, orderBy
+    getFirestore, collection, addDoc, updateDoc, deleteDoc, arrayUnion, doc, onSnapshot, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 // ══ CONFIG FIREBASE ══
@@ -154,6 +154,7 @@ document.getElementById('login-btn').addEventListener('click', () => {
         }
         suscribirPartes();
         suscribirInformes();
+        suscribirNovedadesMtto();
 
     } else if (state.role === 'supervisor') {
         document.getElementById('screen-supervisor').style.display = 'block';
@@ -189,6 +190,16 @@ function suscribirNovedadesSup() {
     state.unsubNov = onSnapshot(q, snap => {
         state.novedades = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
         renderHistorialSup();
+    });
+}
+
+// ══ FIRESTORE: NOVEDADES (mantenimiento: puede comentar y actualizar estado) ══
+function suscribirNovedadesMtto() {
+    const q = query(collection(db, COL_NOVEDADES), orderBy('timestamp', 'desc'));
+    state.unsubNov = onSnapshot(q, snap => {
+        state.novedades = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+        renderNovedadesMtto();
+        refrescarModalNovedad(); // si el modal está abierto, se actualiza en vivo
     });
 }
 
@@ -271,6 +282,12 @@ function renderHistorialSup() {
     list.innerHTML = buildNovedadesHtml(state.novedades);
 }
 
+function renderNovedadesMtto() {
+    const list = document.getElementById('mtto-novedades-list');
+    if (!list) return;
+    list.innerHTML = buildNovedadesHtml(state.novedades);
+}
+
 function renderNovedadesVis() {
     const list = document.getElementById('novedades-vis-list');
     if (!list) return;
@@ -286,16 +303,33 @@ function buildNovedadesHtml(arr) {
         <div class="novedad-card tipo-${n.tipo}" onclick="verNovedad('${n.firestoreId}')">
             <div class="novedad-header">
                 <div class="novedad-sector">${n.sector}</div>
-                <div style="display:flex;align-items:center;gap:6px">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">
                     <span class="novedad-tipo-badge ${n.tipo}">${tipoLabel[n.tipo] || n.tipo}</span>
                     <span class="novedad-resuelto ${n.resuelto}">${resueltoLabel[n.resuelto] || n.resuelto}</span>
+                    ${state.role === 'supervisor' && n.usuario === state.currentUser
+                        ? `<button type="button" class="btn-editar-nov" onclick="event.stopPropagation(); editarNovedad('${n.firestoreId}')">✎ EDITAR</button>` : ''}
                 </div>
             </div>
             <div style="font-size:10px;color:var(--muted);margin:4px 0;font-family:var(--font-mono)">
                 ${n.fechaCorta} · TURNO ${(n.turno||'').toUpperCase()} · ${n.usuario}
             </div>
             <div style="font-size:13px;">${n.descripcion}</div>
+            ${respuestaMttoHtml(n)}
         </div>`).join('');
+}
+
+// Resumen de la respuesta de mantenimiento (último comentario / cambio de estado) dentro de la tarjeta
+function respuestaMttoHtml(n) {
+    const coms = n.comentarios || [];
+    if (!coms.length && !n.usuarioActualizacion) return '';
+    const esc = t => String(t ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const ult = coms[coms.length - 1];
+    return `
+        <div class="nov-resp">
+            <div class="nov-resp-label">RESPUESTA DE MANTENIMIENTO${coms.length > 1 ? ` · 💬 ${coms.length}` : ''}</div>
+            ${ult ? `<div class="nov-resp-texto"><b>${esc(ult.usuario)}:</b> ${esc(ult.texto)}</div>` : ''}
+            ${n.usuarioActualizacion ? `<div class="nov-resp-meta">Estado actualizado por ${esc(n.usuarioActualizacion)}${n.fechaActualizacion ? ' · ' + new Date(n.fechaActualizacion).toLocaleString('es-AR') : ''}</div>` : ''}
+        </div>`;
 }
 
 // ══ RENDER INFORMES ══
@@ -314,9 +348,12 @@ function renderInformes() {
     const listMttoTodos = document.getElementById('mtto-todos-informes-list');
     if (listMttoTodos) listMttoTodos.innerHTML = buildInformesHtml(state.informes, 'mtto');
 
-    // Supervisor: ve todos los informes (rol de supervisión)
+    // Supervisor (Producción): ve todos los informes, salvo los de mantenimiento (no le corresponden)
     const listSup = document.getElementById('sup-informes-list');
-    if (listSup) listSup.innerHTML = buildInformesHtml(state.informes, 'sup');
+    if (listSup) {
+        const visiblesSup = state.informes.filter(inf => !ALL_MTTO_NOMBRES.includes(inf.usuarioCreador));
+        listSup.innerHTML = buildInformesHtml(visiblesSup, 'sup');
+    }
 
     // Visualizador/admin: ve todos, con filtros propios
     renderInformesVis();
@@ -332,7 +369,11 @@ function buildInformesHtml(arr, prefix) {
         <div class="informe-card" onclick="verInforme('${inf.firestoreId}')">
             <div class="informe-header">
                 <div class="informe-asunto">${inf.asunto}</div>
-                ${esPropio ? `<button type="button" class="btn-editar-informe" onclick="event.stopPropagation(); editarInforme_${prefix}('${inf.firestoreId}')">EDITAR</button>` : ''}
+                ${esPropio ? `
+                <div class="informe-acciones">
+                    <button type="button" class="btn-editar-informe" onclick="event.stopPropagation(); editarInforme_${prefix}('${inf.firestoreId}')">EDITAR</button>
+                    <button type="button" class="btn-borrar-informe" onclick="event.stopPropagation(); borrarInforme('${inf.firestoreId}')">BORRAR</button>
+                </div>` : ''}
             </div>
             <div class="informe-meta">
                 De: ${inf.usuarioCreador || '—'} · Creado: ${fc}${fe ? ` · Editado: ${fe}` : ''}
@@ -384,6 +425,20 @@ window.verInforme = (id) => {
     document.getElementById('modal-informe-overlay').style.display = 'flex';
 };
 window.cerrarModalInforme = () => document.getElementById('modal-informe-overlay').style.display = 'none';
+
+// ══ BORRAR INFORME (solo el propio autor) ══
+window.borrarInforme = async (id) => {
+    const inf = state.informes.find(x => x.firestoreId === id);
+    if (!inf || inf.usuarioCreador !== state.currentUser) return;
+    if (!confirm(`¿Borrar el informe "${inf.asunto}"? Esta acción no se puede deshacer.`)) return;
+    try {
+        await deleteDoc(doc(db, COL_INFORMES, id));
+        showToast('✓ Informe borrado');
+    } catch (e) {
+        showToast('Error al borrar', true);
+        console.error(e);
+    }
+};
 
 document.getElementById('informes-btn-filtrar')?.addEventListener('click', aplicarFiltrosInformes);
 document.getElementById('informes-btn-limpiar')?.addEventListener('click', () => {
@@ -499,28 +554,10 @@ crearModuloInformes('sup',  'data-stab', 'tab-sup-informe');
 
 // ══ SIDEBAR ══
 function renderSidebar() {
-    renderSidebarSectores();
     renderSidebarNovedades();
     renderSidebarResumen();
 }
 
-function renderSidebarSectores() {
-    const el = document.getElementById('sidebar-sectores');
-    if (!el) return;
-    const map = {};
-    state.partesFiltrados.forEach(p => { map[p.sector] = (map[p.sector] || 0) + 1; });
-    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
-    const max = entries[0]?.[1] || 1;
-    const colorClasses = ['', 'amb', 'grn', 'blu'];
-    if (!entries.length) { el.innerHTML = emptyMsg('Sin datos.'); return; }
-    el.innerHTML = entries.map(([sector, count], i) => `
-        <div class="sb-bar-row">
-            <div class="sb-bar-label"><span>${sector}</span><span>${count}</span></div>
-            <div class="sb-bar-track">
-                <div class="sb-bar-fill ${colorClasses[i % colorClasses.length]}" style="width:${Math.round((count/max)*100)}%"></div>
-            </div>
-        </div>`).join('');
-}
 
 function renderSidebarNovedades() {
     const el = document.getElementById('sidebar-novedades-recientes');
@@ -711,27 +748,74 @@ document.getElementById('btn-guardar-novedad')?.addEventListener('click', async 
     btn.textContent = 'GUARDANDO...';
 
     try {
-        await addDoc(collection(db, COL_NOVEDADES), {
-            timestamp:   Date.now(),
-            fechaCorta:  new Date().toLocaleDateString('es-AR'),
-            turno:       state.supTurno,
-            sector,
-            tipo:        state.supTipo,
-            descripcion,
-            responsable: resp,
-            resuelto,
-            usuario:     state.currentUser
-        });
-        showToast('✓ Novedad registrada correctamente');
+        if (editNovId) {
+            const orig = state.novedades.find(x => x.firestoreId === editNovId);
+            if (!orig || orig.usuario !== state.currentUser) {
+                showToast('No podés editar esta novedad', true); return;
+            }
+            await updateDoc(doc(db, COL_NOVEDADES, editNovId), {
+                turno:          state.supTurno,
+                sector,
+                tipo:           state.supTipo,
+                descripcion,
+                responsable:    resp,
+                resuelto,
+                fechaEdicion:   Date.now(),
+                usuarioEdicion: state.currentUser
+            });
+            showToast('✓ Novedad actualizada correctamente');
+        } else {
+            await addDoc(collection(db, COL_NOVEDADES), {
+                timestamp:   Date.now(),
+                fechaCorta:  new Date().toLocaleDateString('es-AR'),
+                turno:       state.supTurno,
+                sector,
+                tipo:        state.supTipo,
+                descripcion,
+                responsable: resp,
+                resuelto,
+                usuario:     state.currentUser
+            });
+            showToast('✓ Novedad registrada correctamente');
+        }
         resetFormSup();
     } catch (e) {
         showToast('Error al guardar', true);
         console.error(e);
     } finally {
         btn.disabled = false;
-        btn.textContent = 'REGISTRAR NOVEDAD';
+        btn.textContent = editNovId ? 'GUARDAR CAMBIOS' : 'REGISTRAR NOVEDAD';
     }
 });
+
+// ══ EDITAR NOVEDAD (producción, solo las propias) ══
+let editNovId = null;
+
+function editarNovedad(id) {
+    const n = state.novedades.find(x => x.firestoreId === id);
+    if (!n || n.usuario !== state.currentUser) { showToast('No podés editar esta novedad', true); return; }
+    editNovId = id;
+
+    document.getElementById('sup-sector').value      = n.sector || '';
+    document.getElementById('sup-descripcion').value = n.descripcion || '';
+    document.getElementById('sup-responsable').value = n.responsable || '';
+    const rad = document.querySelector(`input[name="resuelto"][value="${n.resuelto || 'no'}"]`);
+    if (rad) rad.checked = true;
+
+    document.querySelectorAll('.turno-btn.turno-sup').forEach(b => b.classList.toggle('selected', b.dataset.turno === n.turno));
+    document.querySelectorAll('.tipo-btn').forEach(b => b.classList.toggle('selected', b.dataset.tipo === n.tipo));
+    state.supTurno = n.turno || null;
+    state.supTipo  = n.tipo  || null;
+
+    document.getElementById('btn-guardar-novedad').textContent = 'GUARDAR CAMBIOS';
+    document.getElementById('btn-cancelar-novedad').style.display = 'block';
+    document.getElementById('edit-nov-banner').style.display = 'block';
+    activarTab('data-stab', 'tab-sup-nuevo');
+    document.getElementById('sup-descripcion').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+window.editarNovedad = editarNovedad;
+
+document.getElementById('btn-cancelar-novedad')?.addEventListener('click', () => resetFormSup());
 
 // ══ FILTROS ══
 document.getElementById('btn-filtrar')?.addEventListener('click', aplicarFiltros);
@@ -870,6 +954,13 @@ function resetFormSup() {
     const no = document.querySelector('input[name="resuelto"][value="no"]');
     if (no) no.checked = true;
     state.supTurno = null; state.supTipo = null;
+    editNovId = null;
+    const bg = document.getElementById('btn-guardar-novedad');
+    if (bg) bg.textContent = 'REGISTRAR NOVEDAD';
+    const bc = document.getElementById('btn-cancelar-novedad');
+    if (bc) bc.style.display = 'none';
+    const bn = document.getElementById('edit-nov-banner');
+    if (bn) bn.style.display = 'none';
 }
 
 window.doLogout = () => location.reload();
@@ -980,14 +1071,98 @@ window.verNovedad = (id) => {
     document.getElementById('modal-nov-meta').textContent     = `${n.fechaCorta} · Por ${n.usuario}`;
     document.getElementById('modal-nov-desc').textContent     = n.descripcion;
     document.getElementById('modal-nov-resp').textContent     = n.responsable || '—';
-    document.getElementById('modal-nov-resuelto').textContent = resueltoLabel[n.resuelto] || n.resuelto;
+    document.getElementById('modal-nov-resuelto').textContent = (resueltoLabel[n.resuelto] || n.resuelto)
+        + (n.usuarioActualizacion ? ` — actualizado por ${n.usuarioActualizacion}${n.fechaActualizacion ? ' · ' + new Date(n.fechaActualizacion).toLocaleString('es-AR') : ''}` : '');
     document.getElementById('modal-nov-turno').textContent    = (n.turno || '').toUpperCase();
     const tipoBadge = document.getElementById('modal-nov-tipo');
     tipoBadge.textContent = tipoLabel[n.tipo] || n.tipo;
     tipoBadge.className   = `modal-badge modal-badge-tipo ${n.tipo}`;
+
+    state.novedadAbierta = id;
+    renderComentariosNovedad(n);
+
+    // Producción puede editar sus propias novedades
+    const btnEdNov = document.getElementById('modal-nov-btn-editar');
+    if (btnEdNov) {
+        const puede = state.role === 'supervisor' && n.usuario === state.currentUser;
+        btnEdNov.style.display = puede ? 'block' : 'none';
+        btnEdNov.onclick = () => { cerrarModalNov(); editarNovedad(id); };
+    }
+
+    // Solo mantenimiento puede comentar y actualizar el estado
+    const panelMtto = document.getElementById('modal-nov-mtto');
+    if (panelMtto) {
+        panelMtto.style.display = state.role === 'mantenimiento' ? 'block' : 'none';
+        document.getElementById('modal-nov-estado').value = n.resuelto || 'no';
+        document.getElementById('modal-nov-comentario').value = '';
+    }
     document.getElementById('modal-nov-overlay').style.display = 'flex';
 };
-window.cerrarModalNov = () => document.getElementById('modal-nov-overlay').style.display = 'none';
+window.cerrarModalNov = () => {
+    state.novedadAbierta = null;
+    document.getElementById('modal-nov-overlay').style.display = 'none';
+};
+
+function renderComentariosNovedad(n) {
+    const el = document.getElementById('modal-nov-comentarios');
+    if (!el) return;
+    const coms = n.comentarios || [];
+    if (!coms.length) { el.innerHTML = '<div class="nov-com-vacio">Sin comentarios.</div>'; return; }
+    const esc = t => String(t ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    el.innerHTML = coms.map(c => `
+        <div class="nov-com">
+            <div class="nov-com-meta">${esc(c.usuario)} · ${c.fecha ? new Date(c.fecha).toLocaleString('es-AR') : '—'}</div>
+            <div class="nov-com-texto">${esc(c.texto).replace(/\n/g, '<br>')}</div>
+        </div>`).join('');
+}
+
+// Si el modal de la novedad está abierto y llegan cambios, se re-dibuja con los datos nuevos
+function refrescarModalNovedad() {
+    if (!state.novedadAbierta) return;
+    const n = state.novedades.find(x => x.firestoreId === state.novedadAbierta);
+    if (!n) return;
+    const resueltoLabel = { si: 'Sí, se resolvió', no: 'No se resolvió', 'en-curso': 'Se inició pero no se terminó' };
+    document.getElementById('modal-nov-resuelto').textContent = (resueltoLabel[n.resuelto] || n.resuelto)
+        + (n.usuarioActualizacion ? ` — actualizado por ${n.usuarioActualizacion}${n.fechaActualizacion ? ' · ' + new Date(n.fechaActualizacion).toLocaleString('es-AR') : ''}` : '');
+    renderComentariosNovedad(n);
+}
+
+// ══ MANTENIMIENTO: comentar / actualizar estado de una novedad de producción ══
+document.getElementById('modal-nov-guardar')?.addEventListener('click', async () => {
+    if (state.role !== 'mantenimiento' || !state.novedadAbierta) return;
+    const n = state.novedades.find(x => x.firestoreId === state.novedadAbierta);
+    if (!n) return;
+
+    const nuevoEstado = document.getElementById('modal-nov-estado').value;
+    const texto = document.getElementById('modal-nov-comentario').value.trim();
+    const cambioEstado = nuevoEstado !== n.resuelto;
+
+    if (!cambioEstado && !texto) { showToast('No hay nada para guardar', true); return; }
+
+    const btn = document.getElementById('modal-nov-guardar');
+    btn.disabled = true;
+    btn.textContent = 'GUARDANDO...';
+    try {
+        const cambios = {};
+        if (cambioEstado) {
+            cambios.resuelto = nuevoEstado;
+            cambios.fechaActualizacion = Date.now();
+            cambios.usuarioActualizacion = state.currentUser;
+        }
+        if (texto) {
+            cambios.comentarios = arrayUnion({ usuario: state.currentUser, texto, fecha: Date.now() });
+        }
+        await updateDoc(doc(db, COL_NOVEDADES, state.novedadAbierta), cambios);
+        document.getElementById('modal-nov-comentario').value = '';
+        showToast('✓ Novedad actualizada');
+    } catch (e) {
+        showToast('Error al guardar', true);
+        console.error(e);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'GUARDAR';
+    }
+});
 
 // ══ KPIs ══
 function actualizarKpis() {
@@ -1027,9 +1202,52 @@ function actualizarKpisNov() {
 // ══ CHARTS ══
 let charts = {};
 
+// Lista detallada "POR SECTOR" (con barras y conteo), movida a ESTADÍSTICAS, al final.
+function renderStatsSectoresList() {
+    const el = document.getElementById('stats-sectores-list');
+    if (!el) return;
+    // Por sector: partes de mantenimiento + novedades de producción (con el estado que les dejó mantenimiento)
+    const map = {};
+    const get = s => map[s] || (map[s] = { partes: 0, nov: 0, si: 0, curso: 0, no: 0, atendidas: 0 });
+    state.partesFiltrados.forEach(p => { get(p.sector).partes++; });
+    state.novedades.forEach(n => {
+        const s = get(n.sector);
+        s.nov++;
+        if (n.resuelto === 'si') s.si++;
+        else if (n.resuelto === 'en-curso') s.curso++;
+        else s.no++;
+        if (n.usuarioActualizacion) s.atendidas++; // estado actualizado por mantenimiento
+    });
+    const entries = Object.entries(map).sort((a, b) => (b[1].partes + b[1].nov) - (a[1].partes + a[1].nov));
+    const max = entries[0] ? (entries[0][1].partes + entries[0][1].nov) || 1 : 1;
+    const colorClasses = ['', 'amb', 'grn', 'blu'];
+    if (!entries.length) { el.innerHTML = emptyMsg('Sin datos.'); return; }
+    el.innerHTML = entries.map(([sector, s], i) => {
+        const total = s.partes + s.nov;
+        return `
+        <div class="sb-bar-row sector-det">
+            <div class="sb-bar-label"><span>${sector}</span><span>${total}</span></div>
+            <div class="sb-bar-track">
+                <div class="sb-bar-fill ${colorClasses[i % colorClasses.length]}" style="width:${Math.round((total/max)*100)}%"></div>
+            </div>
+            <div class="sector-det-chips">
+                <span class="sdc">${s.partes} partes</span>
+                ${s.nov ? `
+                <span class="sdc">${s.nov} novedades</span>
+                <span class="novedad-resuelto si">${s.si} RESUELTAS</span>
+                <span class="novedad-resuelto en-curso">${s.curso} SE INICIÓ</span>
+                <span class="novedad-resuelto no">${s.no} PENDIENTES</span>
+                ${s.atendidas ? `<span class="sdc sdc-mtto">${s.atendidas} atendidas por MTTO</span>` : ''}` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+
 function renderCharts() {
     Object.values(charts).forEach(c => c.destroy());
     charts = {};
+    renderStatsSectoresList();
     const gridColor   = '#40444b55';
     const tickStyle   = { color: '#8e9297', font: { family: 'DM Mono', size: 10 } };
     const legendStyle = { labels: { color: '#8e9297', font: { family: 'DM Mono', size: 11 }, padding: 16, boxWidth: 12 } };
@@ -1074,12 +1292,19 @@ function renderCharts() {
 
     const cNovSec = document.getElementById('chart-nov-sectores');
     if (cNovSec) {
-        const map = {};
-        state.novedades.forEach(n => { map[n.sector] = (map[n.sector]||0) + 1; });
+        // Apilado por estado (el estado lo actualiza mantenimiento)
+        const sectores = [...new Set(state.novedades.map(n => n.sector))];
+        const cuenta = (sec, est) => state.novedades.filter(n => n.sector === sec &&
+            (est === 'si' ? n.resuelto === 'si' : est === 'en-curso' ? n.resuelto === 'en-curso' : (n.resuelto !== 'si' && n.resuelto !== 'en-curso'))).length;
+        const ds = (label, est, bg, bd) => ({ label, data: sectores.map(s => cuenta(s, est)), backgroundColor: bg, borderColor: bd, borderWidth: 1, borderRadius: 2 });
         charts.novSectores = new Chart(cNovSec, {
             type: 'bar',
-            data: { labels: Object.keys(map), datasets:[{ data:Object.values(map), backgroundColor:'#d9770666', borderColor:'#d97706', borderWidth:1, borderRadius:2 }] },
-            options: { plugins:{legend:{display:false}}, scales:{ x:{ticks:tickStyle,grid:{color:gridColor}}, y:{ticks:{...tickStyle,stepSize:1},grid:{color:gridColor},beginAtZero:true} } }
+            data: { labels: sectores, datasets: [
+                ds('Resuelto',   'si',       '#2d4a2e', '#63b167'),
+                ds('Se inició',  'en-curso', '#5c4a14', '#f5b324'),
+                ds('Pendiente',  'no',       '#66261d', '#ff6b57')
+            ] },
+            options: { plugins:{legend:legendStyle}, scales:{ x:{stacked:true,ticks:tickStyle,grid:{color:gridColor}}, y:{stacked:true,ticks:{...tickStyle,stepSize:1},grid:{color:gridColor},beginAtZero:true} } }
         });
     }
 }
