@@ -212,6 +212,7 @@ function suscribirNovedadesVis() {
         actualizarKpisNov();
         renderSidebar();
         renderCharts();
+        refrescarModalNovedad();
     });
 }
 
@@ -1089,10 +1090,10 @@ window.verNovedad = (id) => {
         btnEdNov.onclick = () => { cerrarModalNov(); editarNovedad(id); };
     }
 
-    // Solo mantenimiento puede comentar y actualizar el estado
+    // Mantenimiento y visualizador pueden comentar y actualizar el estado
     const panelMtto = document.getElementById('modal-nov-mtto');
     if (panelMtto) {
-        panelMtto.style.display = state.role === 'mantenimiento' ? 'block' : 'none';
+        panelMtto.style.display = puedeGestionarNovedad() ? 'block' : 'none';
         document.getElementById('modal-nov-estado').value = n.resuelto || 'no';
         document.getElementById('modal-nov-comentario').value = '';
     }
@@ -1127,9 +1128,14 @@ function refrescarModalNovedad() {
     renderComentariosNovedad(n);
 }
 
-// ══ MANTENIMIENTO: comentar / actualizar estado de una novedad de producción ══
+// Mismo permiso que mantenimiento para comentar y actualizar el estado de una novedad
+function puedeGestionarNovedad() {
+    return state.role === 'mantenimiento' || state.role === 'visualizador';
+}
+
+// ══ MANTENIMIENTO / VISUALIZADOR: comentar / actualizar estado de una novedad de producción ══
 document.getElementById('modal-nov-guardar')?.addEventListener('click', async () => {
-    if (state.role !== 'mantenimiento' || !state.novedadAbierta) return;
+    if (!puedeGestionarNovedad() || !state.novedadAbierta) return;
     const n = state.novedades.find(x => x.firestoreId === state.novedadAbierta);
     if (!n) return;
 
