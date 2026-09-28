@@ -175,15 +175,22 @@ select { cursor: pointer; }
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;      /* Firefox */
-  -ms-overflow-style: none;   /* IE/Edge viejo */
+  scrollbar-width: thin;                       /* Firefox */
+  scrollbar-color: #444 #161616;                /* Firefox */
 }
-.vis-nav::-webkit-scrollbar { display: none; }  /* Chrome/Safari */
+/* Barra de scroll visible, angosta, debajo del nav (Chrome/Safari/Edge) */
+.vis-nav::-webkit-scrollbar { height: 4px; }
+.vis-nav::-webkit-scrollbar-track { background: transparent; }
+.vis-nav::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+.vis-nav::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-/* En celular: arranca alineado a la izquierda y se puede deslizar */
+/* En celular: arranca alineado a la izquierda, se puede deslizar, y le hacemos
+   lugar al header para que la barra de scroll no quede tapada */
 @media (max-width: 700px) {
-  .vis-nav { justify-content: flex-start; }
-  .vis-nav-btn { padding: 0 14px; }
+  .vis-nav { justify-content: flex-start; align-items: flex-start; padding-bottom: 6px; }
+  .vis-nav-btn { padding: 0 14px; height: 46px; }
+  .vis-header { height: 58px; align-items: flex-start; padding-top: 0; }
+  .vis-header-left, .vis-header .hbadge { height: 52px; display: flex; align-items: center; }
 }
 
 .vis-nav-btn {
