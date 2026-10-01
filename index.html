@@ -55,6 +55,7 @@
     <nav class="vis-nav">
       <div class="vis-nav-btn active" data-ctab="tab-nuevo">NUEVO PARTE</div>
       <div class="vis-nav-btn" data-ctab="tab-informe">INFORME</div>
+      <div class="vis-nav-btn" data-ctab="tab-orden-trabajo">OT</div>
       <div class="vis-nav-btn" data-ctab="tab-historial-carga">HISTORIAL</div>
       <div class="vis-nav-btn" data-ctab="tab-mtto-novedades">NOVEDADES</div>
       <div class="vis-nav-btn hidden-tab" data-ctab="tab-mtto-todos" id="nav-mtto-todos">PARTES MTTO</div>
@@ -114,6 +115,7 @@
               <label class="radio-label"><input type="radio" name="paroProduccion" value="no" checked> No</label>
             </div>
           </div>
+
         </div>
 
         <div class="field">
@@ -134,6 +136,73 @@
         <button class="btn btn-green" id="btn-guardar-parte" style="flex:1; width:auto;">REGISTRAR PARTE</button>
         <button class="btn" id="btn-cancelar-parte" style="display:none; flex:0 0 140px; width:auto;">CANCELAR</button>
       </div>
+    </div>
+  </div>
+
+  <!-- TAB: ORDEN DE TRABAJO — mantenimiento terciarizado -->
+  <div id="tab-orden-trabajo" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title">ORDEN DE TRABAJO</div>
+        <div class="fecha-badge" id="fecha-ot">—</div>
+      </div>
+
+      <div class="card">
+        <div class="form-grid">
+          <div class="field">
+            <label>Trabajador terciarizado</label>
+            <select id="ot-tecnico">
+              <option value="">Seleccionar trabajador</option>
+              <option value="Pedro Sanchez">Pedro Sanchez</option>
+              <option value="Adrian Vilmo">Adrian Vilmo</option>
+              <option value="otro">Otro</option>
+            </select>
+            <input type="text" id="ot-tecnico-otro" placeholder="Escribir nombre del trabajador" style="display:none; margin-top:8px;">
+          </div>
+
+          <div class="field">
+            <label>Sector</label>
+            <select id="ot-sector">
+              <option value="">Seleccionar Sector</option>
+              <option value="Fabricación">Fabricación</option>
+              <option value="Cámara de Fermento">Cámara de Fermento</option>
+              <option value="Horno">Horno</option>
+              <option value="Enfriador">Enfriador</option>
+              <option value="Envase">Envase</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+
+          <div class="field full" id="ot-sector-otro-wrap" style="display:none;">
+            <label>Especificar Sector</label>
+            <input type="text" id="ot-sector-otro" placeholder="Escribí el sector...">
+          </div>
+
+          <div class="field">
+            <label>¿Se paró la producción?</label>
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="ot-paro-produccion" value="si"> Sí</label>
+              <label class="radio-label"><input type="radio" name="ot-paro-produccion" value="no" checked> No</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Carga técnica</label>
+          <textarea id="ot-trabajo" placeholder="Detalle del trabajo a realizar..."></textarea>
+        </div>
+
+        <div class="field mb-0">
+          <label>Estado del trabajo</label>
+          <div class="estado-grid" id="ot-estado-grid">
+            <div class="estado-btn ot-estado-btn" data-ot-estado="pendiente">PENDIENTE</div>
+            <div class="estado-btn ot-estado-btn" data-ot-estado="en-proceso">EN PROCESO</div>
+            <div class="estado-btn ot-estado-btn" data-ot-estado="completado">COMPLETADO</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-green" id="btn-guardar-orden">REGISTRAR ORDEN DE TRABAJO</button>
     </div>
   </div>
 
@@ -273,7 +342,22 @@
 
           <div class="field">
             <label>Responsable de Turno</label>
-            <input type="text" id="sup-responsable" placeholder="Nombre del responsable">
+            <select id="sup-responsable">
+              <option value="">Seleccionar responsable</option>
+              <option value="Aranzabal Juan">Aranzabal Juan</option>
+              <option value="Adrian Farias">Farias Adrian</option>
+              <option value="Angel Rene">Rene Angel</option>
+              <option value="otro">Otro</option>
+            </select>
+            <input type="text" id="sup-responsable-otro" placeholder="Escribir nombre del responsable" style="display:none; margin-top:8px;">
+          </div>
+
+          <div class="field">
+            <label>¿Se paró la producción?</label>
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="sup-paro-produccion" value="si"> Sí</label>
+              <label class="radio-label"><input type="radio" name="sup-paro-produccion" value="no" checked> No</label>
+            </div>
           </div>
 
           <!-- NUEVO: 3 opciones de resolución -->
@@ -554,6 +638,7 @@
     <div class="modal-body">
       <div class="modal-field"><div class="modal-label">DESCRIPCIÓN</div><div class="modal-value" id="modal-nov-desc">—</div></div>
       <div class="modal-field"><div class="modal-label">RESPONSABLE DE TURNO</div><div class="modal-value" id="modal-nov-resp">—</div></div>
+      <div class="modal-field"><div class="modal-label">¿SE PARÓ LA PRODUCCIÓN?</div><div class="modal-value" id="modal-nov-paro-produccion">—</div></div>
       <div class="modal-field"><div class="modal-label">RESOLUCIÓN EN EL TURNO</div><div class="modal-value" id="modal-nov-resuelto">—</div></div>
       <div class="modal-badges">
         <span class="modal-badge" id="modal-nov-turno">—</span>
