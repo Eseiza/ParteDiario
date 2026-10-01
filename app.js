@@ -21,6 +21,7 @@ const db  = getFirestore(app);
 const COL_PARTES    = "partes";
 const COL_NOVEDADES = "novedades";
 const COL_INFORMES  = "informes";
+const COL_ORDENES   = "ordenesTrabajo";
 
 // ══ USUARIOS ══
 const USERS = {
@@ -115,7 +116,7 @@ function equipoDe(nombre) {
 
 // ══ FECHA ══
 const fechaHoy = new Date().toLocaleDateString('es-AR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-['fecha-actual', 'fecha-sup'].forEach(id => {
+['fecha-actual', 'fecha-sup', 'fecha-ot'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = fechaHoy;
 });
@@ -315,6 +316,7 @@ function buildNovedadesHtml(arr) {
                 ${n.fechaCorta} · TURNO ${(n.turno||'').toUpperCase()} · ${n.usuario}
             </div>
             <div style="font-size:13px;">${n.descripcion}</div>
+            ${n.responsable ? `<div style="font-size:10px;color:var(--muted);margin-top:8px;font-family:var(--font-mono)">RESPONSABLE: ${n.responsable}</div>` : ''}
             ${respuestaMttoHtml(n)}
         </div>`).join('');
 }
@@ -633,6 +635,68 @@ document.getElementById('campo-sector')?.addEventListener('change', function () 
     if (this.value !== 'Otros') document.getElementById('campo-sector-otro').value = '';
 });
 
+// ══ ORDEN DE TRABAJO — MANTENIMIENTO TERCIARIZADO ══
+configurarCampoOtro('ot-tecnico', 'ot-tecnico-otro');
+
+document.getElementById('ot-sector')?.addEventListener('change', function () {
+    const wrap = document.getElementById('ot-sector-otro-wrap');
+    if (!wrap) return;
+    wrap.style.display = this.value === 'Otros' ? 'block' : 'none';
+    if (this.value !== 'Otros') document.getElementById('ot-sector-otro').value = '';
+});
+
+document.querySelectorAll('.ot-estado-btn').forEach(b => b.addEventListener('click', e => {
+    document.querySelectorAll('.ot-estado-btn').forEach(x => x.classList.remove('selected'));
+    e.currentTarget.classList.add('selected');
+}));
+
+document.getElementById('btn-guardar-orden')?.addEventListener('click', async () => {
+    const trabajador = obtenerValorConOtro('ot-tecnico', 'ot-tecnico-otro');
+    const sectorSelect = document.getElementById('ot-sector')?.value || '';
+    const sectorOtro = document.getElementById('ot-sector-otro')?.value.trim() || '';
+    const trabajo = document.getElementById('ot-trabajo')?.value.trim() || '';
+    const estado = document.querySelector('.ot-estado-btn.selected')?.dataset.otEstado || '';
+    const paroProduccion = document.querySelector('input[name="ot-paro-produccion"]:checked')?.value || 'no';
+    const sector = sectorSelect === 'Otros' ? sectorOtro : sectorSelect;
+
+    if (!trabajador || !sector || !trabajo || !estado) {
+        showToast('Faltan datos obligatorios', true); return;
+    }
+
+    const btn = document.getElementById('btn-guardar-orden');
+    btn.disabled = true;
+    btn.textContent = 'GUARDANDO...';
+    try {
+        await addDoc(collection(db, COL_ORDENES), {
+            timestamp: Date.now(),
+            fechaCorta: new Date().toLocaleDateString('es-AR'),
+            trabajadorTerciarizado: trabajador,
+            sector,
+            trabajo,
+            paroProduccion,
+            estado,
+            usuarioCreador: state.currentUser
+        });
+        showToast('✓ Orden de trabajo registrada correctamente');
+        document.getElementById('ot-tecnico').value = '';
+        document.getElementById('ot-tecnico-otro').value = '';
+        document.getElementById('ot-tecnico-otro').style.display = 'none';
+        document.getElementById('ot-sector').value = '';
+        document.getElementById('ot-sector-otro').value = '';
+        document.getElementById('ot-sector-otro-wrap').style.display = 'none';
+        document.getElementById('ot-trabajo').value = '';
+        const otNo = document.querySelector('input[name="ot-paro-produccion"][value="no"]');
+        if (otNo) otNo.checked = true;
+        document.querySelectorAll('.ot-estado-btn').forEach(x => x.classList.remove('selected'));
+    } catch (e) {
+        showToast('Error al guardar la orden', true);
+        console.error(e);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'REGISTRAR ORDEN DE TRABAJO';
+    }
+});
+
 // ══ NAVEGACIÓN MTTO ══
 document.querySelectorAll('[data-ctab]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -733,12 +797,53 @@ document.getElementById('btn-guardar-parte')?.addEventListener('click', async ()
     }
 });
 
+// ══ RESPONSABLE / MTTO TERCIARIZADO (PRODUCCIÓN) ══
+function configurarCampoOtro(selectId, inputId) {
+    const select = document.getElementById(selectId);
+    const input = document.getElementById(inputId);
+    if (!select || !input) return;
+    const actualizar = () => {
+        const esOtro = select.value === 'otro';
+        input.style.display = esOtro ? 'block' : 'none';
+        if (!esOtro) input.value = '';
+    };
+    select.addEventListener('change', actualizar);
+    actualizar();
+}
+
+configurarCampoOtro('sup-responsable', 'sup-responsable-otro');
+
+function obtenerValorConOtro(selectId, inputId) {
+    const select = document.getElementById(selectId);
+    const input = document.getElementById(inputId);
+    if (!select) return '';
+    return select.value === 'otro' ? (input?.value.trim() || '') : select.value;
+}
+
+function cargarValorConOtro(selectId, inputId, valor) {
+    const select = document.getElementById(selectId);
+    const input = document.getElementById(inputId);
+    if (!select) return;
+    const opciones = [...select.options].map(o => o.value);
+    if (!valor) {
+        select.value = '';
+        if (input) { input.value = ''; input.style.display = 'none'; }
+    } else if (opciones.includes(valor)) {
+        select.value = valor;
+        if (input) { input.value = ''; input.style.display = 'none'; }
+    } else {
+        select.value = 'otro';
+        if (input) { input.value = valor; input.style.display = 'block'; }
+    }
+}
+
 // ══ GUARDAR NOVEDAD ══
 document.getElementById('btn-guardar-novedad')?.addEventListener('click', async () => {
     const sector      = document.getElementById('sup-sector').value;
     const descripcion = document.getElementById('sup-descripcion').value.trim();
-    const resp        = document.getElementById('sup-responsable').value.trim();
+    const resp        = obtenerValorConOtro('sup-responsable', 'sup-responsable-otro');
     const resuelto    = document.querySelector('input[name="resuelto"]:checked')?.value || 'no';
+    const paroProduccion = document.querySelector('input[name="sup-paro-produccion"]:checked')?.value || 'no';
 
     if (!sector || !descripcion || !state.supTurno || !state.supTipo) {
         showToast('Faltan datos obligatorios', true); return;
@@ -760,6 +865,7 @@ document.getElementById('btn-guardar-novedad')?.addEventListener('click', async 
                 tipo:           state.supTipo,
                 descripcion,
                 responsable:    resp,
+                paroProduccion,
                 resuelto,
                 fechaEdicion:   Date.now(),
                 usuarioEdicion: state.currentUser
@@ -774,6 +880,7 @@ document.getElementById('btn-guardar-novedad')?.addEventListener('click', async 
                 tipo:        state.supTipo,
                 descripcion,
                 responsable: resp,
+                paroProduccion,
                 resuelto,
                 usuario:     state.currentUser
             });
@@ -799,7 +906,9 @@ function editarNovedad(id) {
 
     document.getElementById('sup-sector').value      = n.sector || '';
     document.getElementById('sup-descripcion').value = n.descripcion || '';
-    document.getElementById('sup-responsable').value = n.responsable || '';
+    cargarValorConOtro('sup-responsable', 'sup-responsable-otro', n.responsable || '');
+    const paroSup = document.querySelector(`input[name="sup-paro-produccion"][value="${n.paroProduccion === 'si' ? 'si' : 'no'}"]`);
+    if (paroSup) paroSup.checked = true;
     const rad = document.querySelector(`input[name="resuelto"][value="${n.resuelto || 'no'}"]`);
     if (rad) rad.checked = true;
 
@@ -948,7 +1057,9 @@ document.getElementById('btn-cancelar-parte')?.addEventListener('click', resetFo
 
 function resetFormSup() {
     document.getElementById('sup-descripcion').value = '';
-    document.getElementById('sup-responsable').value = '';
+    cargarValorConOtro('sup-responsable', 'sup-responsable-otro', '');
+    const paroSupNo = document.querySelector('input[name="sup-paro-produccion"][value="no"]');
+    if (paroSupNo) paroSupNo.checked = true;
     document.getElementById('sup-sector').value      = '';
     document.querySelectorAll('.turno-btn.turno-sup, .tipo-btn')
         .forEach(b => b.classList.remove('selected'));
@@ -1072,6 +1183,7 @@ window.verNovedad = (id) => {
     document.getElementById('modal-nov-meta').textContent     = `${n.fechaCorta} · Por ${n.usuario}`;
     document.getElementById('modal-nov-desc').textContent     = n.descripcion;
     document.getElementById('modal-nov-resp').textContent     = n.responsable || '—';
+    document.getElementById('modal-nov-paro-produccion').textContent = n.paroProduccion === 'si' ? 'Sí' : 'No';
     document.getElementById('modal-nov-resuelto').textContent = (resueltoLabel[n.resuelto] || n.resuelto)
         + (n.usuarioActualizacion ? ` — actualizado por ${n.usuarioActualizacion}${n.fechaActualizacion ? ' · ' + new Date(n.fechaActualizacion).toLocaleString('es-AR') : ''}` : '');
     document.getElementById('modal-nov-turno').textContent    = (n.turno || '').toUpperCase();
