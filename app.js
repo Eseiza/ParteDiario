@@ -116,7 +116,7 @@ function equipoDe(nombre) {
 
 // ══ FECHA ══
 const fechaHoy = new Date().toLocaleDateString('es-AR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-['fecha-actual', 'fecha-sup', 'fecha-ot'].forEach(id => {
+['fecha-actual', 'fecha-sup'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = fechaHoy;
 });
@@ -636,30 +636,91 @@ document.getElementById('campo-sector')?.addEventListener('change', function () 
 });
 
 // ══ ORDEN DE TRABAJO — MANTENIMIENTO TERCIARIZADO ══
+configurarCampoOtro('ot-proveedor', 'ot-proveedor-otro');
 configurarCampoOtro('ot-tecnico', 'ot-tecnico-otro');
 
-document.getElementById('ot-sector')?.addEventListener('change', function () {
-    const wrap = document.getElementById('ot-sector-otro-wrap');
-    if (!wrap) return;
-    wrap.style.display = this.value === 'Otros' ? 'block' : 'none';
-    if (this.value !== 'Otros') document.getElementById('ot-sector-otro').value = '';
-});
+function hoyISO() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+}
 
-document.querySelectorAll('.ot-estado-btn').forEach(b => b.addEventListener('click', e => {
-    document.querySelectorAll('.ot-estado-btn').forEach(x => x.classList.remove('selected'));
-    e.currentTarget.classList.add('selected');
-}));
+function otAgregarItem() {
+    const cont = document.getElementById('ot-items');
+    if (!cont) return;
+    const item = document.createElement('div');
+    item.className = 'ot-item';
+    item.innerHTML = `
+        <div class="ot-item-head">
+            <span class="ot-item-num"></span>
+            <button type="button" class="ot-item-del" title="Quitar ítem">✕</button>
+        </div>
+        <div class="ot-item-grid">
+            <div class="field">
+                <label>OT</label>
+                <input type="text" class="ot-numero" inputmode="numeric" placeholder="N° de OT">
+            </div>
+            <div class="field ot-desc">
+                <label>Descripción</label>
+                <input type="text" class="ot-descripcion" placeholder="Trabajo realizado...">
+            </div>
+            <div class="field">
+                <label>Hora inicio</label>
+                <input type="time" class="ot-hora-inicio">
+            </div>
+            <div class="field">
+                <label>Hora fin</label>
+                <input type="time" class="ot-hora-fin">
+            </div>
+        </div>`;
+    item.querySelector('.ot-item-del').addEventListener('click', () => {
+        item.remove();
+        otRenumerarItems();
+    });
+    cont.appendChild(item);
+    otRenumerarItems();
+}
+
+function otRenumerarItems() {
+    const items = document.querySelectorAll('#ot-items .ot-item');
+    items.forEach((it, i) => {
+        it.querySelector('.ot-item-num').textContent = 'ÍTEM ' + (i + 1);
+        // con un solo ítem no tiene sentido poder borrarlo
+        it.querySelector('.ot-item-del').style.display = items.length > 1 ? '' : 'none';
+    });
+}
+
+function otReset() {
+    document.getElementById('ot-fecha').value = hoyISO();
+    document.getElementById('ot-proveedor').value = '';
+    document.getElementById('ot-proveedor-otro').value = '';
+    document.getElementById('ot-proveedor-otro').style.display = 'none';
+    document.getElementById('ot-tecnico').value = '';
+    document.getElementById('ot-tecnico-otro').value = '';
+    document.getElementById('ot-tecnico-otro').style.display = 'none';
+    document.getElementById('ot-items').innerHTML = '';
+    otAgregarItem();
+}
+
+if (document.getElementById('ot-items')) {
+    otReset();
+    document.getElementById('ot-btn-add').addEventListener('click', otAgregarItem);
+}
 
 document.getElementById('btn-guardar-orden')?.addEventListener('click', async () => {
+    const fecha = document.getElementById('ot-fecha').value;
+    const proveedor = obtenerValorConOtro('ot-proveedor', 'ot-proveedor-otro');
     const trabajador = obtenerValorConOtro('ot-tecnico', 'ot-tecnico-otro');
-    const sectorSelect = document.getElementById('ot-sector')?.value || '';
-    const sectorOtro = document.getElementById('ot-sector-otro')?.value.trim() || '';
-    const trabajo = document.getElementById('ot-trabajo')?.value.trim() || '';
-    const estado = document.querySelector('.ot-estado-btn.selected')?.dataset.otEstado || '';
-    const paroProduccion = document.querySelector('input[name="ot-paro-produccion"]:checked')?.value || 'no';
-    const sector = sectorSelect === 'Otros' ? sectorOtro : sectorSelect;
 
-    if (!trabajador || !sector || !trabajo || !estado) {
+    const items = [...document.querySelectorAll('#ot-items .ot-item')].map(it => ({
+        ot: it.querySelector('.ot-numero').value.trim(),
+        descripcion: it.querySelector('.ot-descripcion').value.trim(),
+        horaInicio: it.querySelector('.ot-hora-inicio').value,
+        horaFin: it.querySelector('.ot-hora-fin').value
+    }));
+
+    const incompleto = items.some(i => !i.ot || !i.descripcion || !i.horaInicio || !i.horaFin);
+    if (!fecha || !proveedor || !trabajador || !items.length || incompleto) {
         showToast('Faltan datos obligatorios', true); return;
     }
 
@@ -667,27 +728,18 @@ document.getElementById('btn-guardar-orden')?.addEventListener('click', async ()
     btn.disabled = true;
     btn.textContent = 'GUARDANDO...';
     try {
+        const [y, m, d] = fecha.split('-');
         await addDoc(collection(db, COL_ORDENES), {
             timestamp: Date.now(),
-            fechaCorta: new Date().toLocaleDateString('es-AR'),
+            fechaTrabajo: fecha,                 // AAAA-MM-DD (ordenable)
+            fechaCorta: `${d}/${m}/${y}`,
+            proveedor,
             trabajadorTerciarizado: trabajador,
-            sector,
-            trabajo,
-            paroProduccion,
-            estado,
+            items,
             usuarioCreador: state.currentUser
         });
         showToast('✓ Orden de trabajo registrada correctamente');
-        document.getElementById('ot-tecnico').value = '';
-        document.getElementById('ot-tecnico-otro').value = '';
-        document.getElementById('ot-tecnico-otro').style.display = 'none';
-        document.getElementById('ot-sector').value = '';
-        document.getElementById('ot-sector-otro').value = '';
-        document.getElementById('ot-sector-otro-wrap').style.display = 'none';
-        document.getElementById('ot-trabajo').value = '';
-        const otNo = document.querySelector('input[name="ot-paro-produccion"][value="no"]');
-        if (otNo) otNo.checked = true;
-        document.querySelectorAll('.ot-estado-btn').forEach(x => x.classList.remove('selected'));
+        otReset();
     } catch (e) {
         showToast('Error al guardar la orden', true);
         console.error(e);
