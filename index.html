@@ -144,65 +144,49 @@
     <div class="app-content">
       <div class="section-header">
         <div class="section-title">ORDEN DE TRABAJO</div>
-        <div class="fecha-badge" id="fecha-ot">—</div>
       </div>
 
       <div class="card">
+        <div class="field">
+          <label>Día de trabajo</label>
+          <input type="date" id="ot-fecha">
+        </div>
+
         <div class="form-grid">
           <div class="field">
-            <label>Trabajador terciarizado</label>
-            <select id="ot-tecnico">
-              <option value="">Seleccionar trabajador</option>
+            <label>Proveedor</label>
+            <select id="ot-proveedor">
+              <option value="">Seleccionar proveedor</option>
               <option value="Pedro Sanchez">Pedro Sanchez</option>
               <option value="Adrian Vilmo">Adrian Vilmo</option>
               <option value="otro">Otro</option>
             </select>
-            <input type="text" id="ot-tecnico-otro" placeholder="Escribir nombre del trabajador" style="display:none; margin-top:8px;">
+            <input type="text" id="ot-proveedor-otro" placeholder="Escribir nombre del proveedor" style="display:none; margin-top:8px;">
           </div>
 
           <div class="field">
-            <label>Sector</label>
-            <select id="ot-sector">
-              <option value="">Seleccionar Sector</option>
-              <option value="Fabricación">Fabricación</option>
-              <option value="Cámara de Fermento">Cámara de Fermento</option>
-              <option value="Horno">Horno</option>
-              <option value="Enfriador">Enfriador</option>
-              <option value="Envase">Envase</option>
-              <option value="Otros">Otros</option>
+            <label>Trabajador</label>
+            <select id="ot-tecnico">
+              <option value="">Seleccionar trabajador</option>
+              <option value="Gomez Gaston">Gomez Gaston</option>
+              <option value="Villalba Sebastian">Villalba Sebastian</option>
+              <option value="Ramirez Andres">Ramirez Andres</option>
+              <option value="otro">Otro</option>
             </select>
-          </div>
-
-          <div class="field full" id="ot-sector-otro-wrap" style="display:none;">
-            <label>Especificar Sector</label>
-            <input type="text" id="ot-sector-otro" placeholder="Escribí el sector...">
-          </div>
-
-          <div class="field">
-            <label>¿Se paró la producción?</label>
-            <div class="radio-group">
-              <label class="radio-label"><input type="radio" name="ot-paro-produccion" value="si"> Sí</label>
-              <label class="radio-label"><input type="radio" name="ot-paro-produccion" value="no" checked> No</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Carga técnica</label>
-          <textarea id="ot-trabajo" placeholder="Detalle del trabajo a realizar..."></textarea>
-        </div>
-
-        <div class="field mb-0">
-          <label>Estado del trabajo</label>
-          <div class="estado-grid" id="ot-estado-grid">
-            <div class="estado-btn ot-estado-btn" data-ot-estado="pendiente">PENDIENTE</div>
-            <div class="estado-btn ot-estado-btn" data-ot-estado="en-proceso">EN PROCESO</div>
-            <div class="estado-btn ot-estado-btn" data-ot-estado="completado">COMPLETADO</div>
+            <input type="text" id="ot-tecnico-otro" placeholder="Escribir nombre del trabajador" style="display:none; margin-top:8px;">
           </div>
         </div>
       </div>
 
-      <button class="btn btn-green" id="btn-guardar-orden">REGISTRAR ORDEN DE TRABAJO</button>
+      <div class="list-label">TAREAS</div>
+      <div id="ot-items"></div>
+
+      <button type="button" class="btn-ot-add" id="ot-btn-add">
+        <span class="ot-add-icon">+</span>
+        <span>NUEVO ÍTEM</span>
+      </button>
+
+      <button class="btn btn-green" id="btn-guardar-orden" style="margin-top:16px;">REGISTRAR ORDEN DE TRABAJO</button>
     </div>
   </div>
 
