@@ -114,6 +114,7 @@ label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 6px
 input[type="text"],
 input[type="password"],
 input[type="date"],
+input[type="time"],
 select,
 textarea {
   width: 100%; background: var(--surface2); border: 1px solid var(--border);
@@ -613,3 +614,35 @@ select { cursor: pointer; }
   width: 100%;
   min-height: 100vh;
 }
+
+/* ══ ORDEN DE TRABAJO (terciarizados) ══ */
+input[type="date"], input[type="time"] { color-scheme: dark; min-height: 44px; }
+.ot-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px 20px 4px;
+  margin-bottom: 12px;
+}
+.ot-item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.ot-item-num { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+.ot-item-del {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  width: 28px; height: 28px; border-radius: var(--r-sm); cursor: pointer; font-size: 12px;
+}
+.ot-item-del:hover { border-color: var(--accent); color: var(--accent); }
+.ot-item-grid { display: grid; grid-template-columns: 110px 1fr 1fr 1fr; gap: 0 16px; }
+.ot-item-grid .ot-desc { grid-column: 2 / -1; }
+@media (max-width: 600px) {
+  .ot-item-grid { grid-template-columns: 1fr 1fr; }
+  .ot-item-grid .ot-desc { grid-column: 1 / -1; }
+}
+.btn-ot-add {
+  display: flex; align-items: center; gap: 10px;
+  background: transparent; border: 1px dashed var(--border); color: var(--muted);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px;
+  padding: 10px 14px; border-radius: var(--r-sm); cursor: pointer;
+  transition: border-color .2s, color .2s;
+}
+.btn-ot-add:hover { border-color: var(--accent2); color: var(--accent2); }
+.ot-add-icon { font-size: 20px; line-height: 1; font-family: var(--font-body); }
