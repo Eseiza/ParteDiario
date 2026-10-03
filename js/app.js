@@ -169,6 +169,10 @@ document.getElementById('login-btn').addEventListener('click', () => {
         suscribirPartes();
         suscribirNovedadesVis();
         suscribirInformes();
+        // Admin también puede consultar el Registro OT, pero no cargar/editar OTs.
+        const navAdminOT = document.getElementById('nav-admin-ot');
+        if (navAdminOT) navAdminOT.classList.remove('hidden-tab');
+        suscribirRegistroOT();
     }
 });
 
@@ -747,6 +751,96 @@ document.getElementById('btn-guardar-orden')?.addEventListener('click', async ()
         btn.disabled = false;
         btn.textContent = 'REGISTRAR ORDEN DE TRABAJO';
     }
+});
+
+// ══ REGISTRO OT — LISTADO DE ÓRDENES GUARDADAS ══
+let registroOT = [];
+let registroOTUnsub = null;
+
+function escaparHTML(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, c => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+    }[c]));
+}
+
+function suscribirRegistroOT() {
+    if (registroOTUnsub) return;
+    const q = query(collection(db, COL_ORDENES));
+    registroOTUnsub = onSnapshot(q, snap => {
+        registroOT = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+        registroOT.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        renderRegistroOT('');
+        renderRegistroOT('admin-');
+    }, err => {
+        console.error('Error cargando Registro OT:', err);
+        ['registro-ot-list','admin-registro-ot-list'].forEach(id => {
+            const lista = document.getElementById(id);
+            if (lista) lista.innerHTML = '<div class="empty-state">No se pudieron cargar las órdenes de trabajo.</div>';
+        });
+    });
+}
+
+function cargarRegistroOT() {
+    // La suscripción se inicia al entrar al módulo OT de mantenimiento.
+    suscribirRegistroOT();
+}
+
+function renderRegistroOT(prefix = '') {
+    const base = prefix ? 'admin-registro-ot-' : 'registro-ot-';
+    const lista = document.getElementById(base + 'list');
+    const total = document.getElementById(base + 'total');
+    if (!lista) return;
+
+    const buscar = (document.getElementById(base + 'buscar')?.value || '').trim().toLowerCase();
+    const fecha = document.getElementById(base + 'fecha')?.value || '';
+
+    const filtradas = registroOT.filter(o => {
+        if (fecha && o.fechaTrabajo !== fecha) return false;
+        if (!buscar) return true;
+        const texto = [
+            o.proveedor, o.trabajadorTerciarizado, o.usuarioCreador,
+            ...(o.items || []).flatMap(i => [i.ot, i.descripcion, i.horaInicio, i.horaFin])
+        ].join(' ').toLowerCase();
+        return texto.includes(buscar);
+    });
+
+    if (total) total.textContent = `${filtradas.length} OT`;
+    if (!filtradas.length) {
+        lista.innerHTML = '<div class="empty-state">No hay órdenes de trabajo para mostrar.</div>';
+        return;
+    }
+
+    lista.innerHTML = filtradas.map(o => {
+        const items = Array.isArray(o.items) ? o.items : [];
+        const tareas = items.map(i => `
+            <div class="registro-ot-item">
+                <div><span class="registro-ot-label">OT</span> ${escaparHTML(i.ot || '—')}</div>
+                <div class="registro-ot-desc">${escaparHTML(i.descripcion || 'Sin descripción')}</div>
+                <div class="registro-ot-horas">${escaparHTML(i.horaInicio || '—')} → ${escaparHTML(i.horaFin || '—')}</div>
+            </div>`).join('');
+
+        return `
+        <div class="registro-ot-card">
+            <div class="registro-ot-head">
+                <div>
+                    <div class="registro-ot-date">${escaparHTML(o.fechaCorta || o.fechaTrabajo || 'Sin fecha')}</div>
+                    <div class="registro-ot-worker">${escaparHTML(o.trabajadorTerciarizado || 'Sin trabajador')}</div>
+                </div>
+                <div class="registro-ot-provider">${escaparHTML(o.proveedor || '')}</div>
+            </div>
+            <div class="registro-ot-items">${tareas || '<div class="registro-ot-desc">Sin ítems cargados.</div>'}</div>
+            <div class="registro-ot-foot">Cargado por: ${escaparHTML(o.usuarioCreador || '—')}</div>
+        </div>`;
+    }).join('');
+}
+
+document.getElementById('registro-ot-buscar')?.addEventListener('input', () => renderRegistroOT(''));
+document.getElementById('registro-ot-fecha')?.addEventListener('change', () => renderRegistroOT(''));
+document.getElementById('admin-registro-ot-buscar')?.addEventListener('input', () => renderRegistroOT('admin-'));
+document.getElementById('admin-registro-ot-fecha')?.addEventListener('change', () => renderRegistroOT('admin-'));
+
+document.addEventListener('parted:subviewchange', (event) => {
+    if (event.detail?.targetId === 'tab-ot-registro') cargarRegistroOT();
 });
 
 // ══ NAVEGACIÓN MTTO ══
