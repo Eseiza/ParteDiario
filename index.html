@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Romero Panificados — Partes Diarios</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/maintenance.css">
 </head>
 <body>
 
@@ -54,7 +55,6 @@
     </div>
     <nav class="vis-nav">
       <div class="vis-nav-btn active" data-ctab="tab-nuevo">NUEVO PARTE</div>
-      <div class="vis-nav-btn" data-ctab="tab-informe">INFORME</div>
       <div class="vis-nav-btn" data-ctab="tab-orden-trabajo">OT</div>
       <div class="vis-nav-btn" data-ctab="tab-historial-carga">HISTORIAL</div>
       <div class="vis-nav-btn" data-ctab="tab-mtto-novedades">NOVEDADES</div>
@@ -69,72 +69,108 @@
 
   <div id="tab-nuevo" class="vis-panel active">
     <div class="app-content">
-      <div class="section-header">
-        <div class="section-title">CARGA TÉCNICA</div>
-        <div class="fecha-badge" id="fecha-actual">—</div>
+      <div class="context-toolbar">
+        <div class="context-toolbar-copy">
+          <div class="context-eyebrow">NUEVO PARTE</div>
+          <div class="context-title" id="nuevo-vista-titulo">Carga técnica</div>
+        </div>
+        <label class="context-picker">
+          <span>Vista</span>
+          <select class="context-view-select" data-subview-group="tab-nuevo" aria-label="Vista de Nuevo Parte">
+            <option value="tab-nuevo-carga">CARGA TÉCNICA</option>
+            <option value="tab-nuevo-informe">INFORME</option>
+          </select>
+        </label>
       </div>
 
-      <div class="card">
-        <div class="form-grid">
-          <div class="field">
-            <label>Turno</label>
-            <div class="turno-grid">
-              <div class="turno-btn" data-turno="mañana">MAÑANA</div>
-              <div class="turno-btn" data-turno="tarde">TARDE</div>
-              <div class="turno-btn" data-turno="noche">NOCHE</div>
+      <div id="tab-nuevo-carga" class="mtto-subpanel active">
+        <div class="section-header">
+          <div class="section-title">CARGA TÉCNICA</div>
+          <div class="fecha-badge" id="fecha-actual">—</div>
+        </div>
+
+        <div class="card">
+          <div class="form-grid">
+            <div class="field">
+              <label>Turno</label>
+              <div class="turno-grid">
+                <div class="turno-btn" data-turno="mañana">MAÑANA</div>
+                <div class="turno-btn" data-turno="tarde">TARDE</div>
+                <div class="turno-btn" data-turno="noche">NOCHE</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Sector</label>
+              <select id="campo-sector">
+                <option value="">Seleccionar Sector</option>
+                <option value="Fabricación">Fabricación</option>
+                <option value="Cámara de Fermento">Cámara de Fermento</option>
+                <option value="Horno">Horno</option>
+                <option value="Enfriador">Enfriador</option>
+                <option value="Envase">Envase</option>
+                <option value="Otros">Otros</option>
+              </select>
+            </div>
+
+            <div class="field full" id="campo-sector-otro-wrap" style="display:none;">
+              <label>Especificar Sector</label>
+              <input type="text" id="campo-sector-otro" placeholder="Escribí el sector...">
+            </div>
+
+            <div class="field">
+              <label>Persona Solicitante</label>
+              <input type="text" id="campo-solicitante" placeholder="Nombre">
+            </div>
+
+            <div class="field">
+              <label>¿Se paró la producción?</label>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="paroProduccion" value="si"> Sí</label>
+                <label class="radio-label"><input type="radio" name="paroProduccion" value="no" checked> No</label>
+              </div>
             </div>
           </div>
 
           <div class="field">
-            <label>Sector</label>
-            <select id="campo-sector">
-              <option value="">Seleccionar Sector</option>
-              <option value="Fabricación">Fabricación</option>
-              <option value="Cámara de Fermento">Cámara de Fermento</option>
-              <option value="Horno">Horno</option>
-              <option value="Enfriador">Enfriador</option>
-              <option value="Envase">Envase</option>
-              <option value="Otros">Otros</option>
-            </select>
+            <label>Tarea Realizada</label>
+            <textarea id="campo-realizada" placeholder="Detalle técnico..."></textarea>
           </div>
 
-          <div class="field full" id="campo-sector-otro-wrap" style="display:none;">
-            <label>Especificar Sector</label>
-            <input type="text" id="campo-sector-otro" placeholder="Escribí el sector...">
-          </div>
-
-          <div class="field">
-            <label>Persona Solicitante</label>
-            <input type="text" id="campo-solicitante" placeholder="Nombre">
-          </div>
-
-          <div class="field">
-            <label>¿Se paró la producción?</label>
-            <div class="radio-group">
-              <label class="radio-label"><input type="radio" name="paroProduccion" value="si"> Sí</label>
-              <label class="radio-label"><input type="radio" name="paroProduccion" value="no" checked> No</label>
+          <div class="field mb-0">
+            <label>Estado del Trabajo</label>
+            <div class="estado-grid">
+              <div class="estado-btn" data-estado="completado">COMPLETADO</div>
+              <div class="estado-btn" data-estado="en-proceso">EN PROCESO</div>
+              <div class="estado-btn" data-estado="pendiente">PENDIENTE</div>
             </div>
           </div>
-
         </div>
 
-        <div class="field">
-          <label>Tarea Realizada</label>
-          <textarea id="campo-realizada" placeholder="Detalle técnico..."></textarea>
-        </div>
-
-        <div class="field mb-0">
-          <label>Estado del Trabajo</label>
-          <div class="estado-grid">
-            <div class="estado-btn" data-estado="completado">COMPLETADO</div>
-            <div class="estado-btn" data-estado="en-proceso">EN PROCESO</div>
-            <div class="estado-btn" data-estado="pendiente">PENDIENTE</div>
-          </div>
+        <div class="form-actions">
+          <button class="btn btn-green" id="btn-guardar-parte">REGISTRAR PARTE</button>
+          <button class="btn" id="btn-cancelar-parte" style="display:none;">CANCELAR</button>
         </div>
       </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-green" id="btn-guardar-parte" style="flex:1; width:auto;">REGISTRAR PARTE</button>
-        <button class="btn" id="btn-cancelar-parte" style="display:none; flex:0 0 140px; width:auto;">CANCELAR</button>
+
+      <div id="tab-nuevo-informe" class="mtto-subpanel" hidden>
+        <div class="section-header">
+          <div class="section-title">INFORME</div>
+        </div>
+
+        <div class="card">
+          <div class="field">
+            <label>Asunto</label>
+            <input type="text" id="mtto-informe-asunto" placeholder="Asunto del informe...">
+          </div>
+          <div class="field mb-0">
+            <label>Mensaje</label>
+            <textarea id="mtto-informe-cuerpo" placeholder="Escribí el informe, como si fuera un mail..." style="min-height:180px"></textarea>
+          </div>
+        </div>
+
+        <button class="btn btn-green" id="mtto-btn-informe">REGISTRAR INFORME</button>
+        <button class="btn btn-outline" id="mtto-btn-informe-cancelar" style="display:none;margin-top:8px">CANCELAR EDICIÓN</button>
       </div>
     </div>
   </div>
@@ -142,74 +178,91 @@
   <!-- TAB: ORDEN DE TRABAJO — mantenimiento terciarizado -->
   <div id="tab-orden-trabajo" class="vis-panel" style="display:none;">
     <div class="app-content">
-      <div class="section-header">
-        <div class="section-title">ORDEN DE TRABAJO</div>
+      <div class="context-toolbar">
+        <div class="context-toolbar-copy">
+          <div class="context-eyebrow">ORDEN DE TRABAJO</div>
+          <div class="context-title" id="ot-vista-titulo">Nueva OT</div>
+        </div>
+        <label class="context-picker">
+          <span>Vista</span>
+          <select class="context-view-select" data-subview-group="tab-orden-trabajo" aria-label="Vista de OT">
+            <option value="tab-ot-nueva">NUEVA OT</option>
+            <option value="tab-ot-registro">REGISTRO OT</option>
+          </select>
+        </label>
       </div>
 
-      <div class="card">
-        <div class="field">
-          <label>Día de trabajo</label>
-          <input type="date" id="ot-fecha">
+      <div id="tab-ot-nueva" class="mtto-subpanel active">
+        <div class="section-header">
+          <div class="section-title">NUEVA OT</div>
         </div>
 
-        <div class="form-grid">
+        <div class="card">
           <div class="field">
-            <label>Proveedor</label>
-            <select id="ot-proveedor">
-              <option value="">Seleccionar proveedor</option>
-              <option value="Pedro Sanchez">Pedro Sanchez</option>
-              <option value="Adrian Vilmo">Adrian Vilmo</option>
-              <option value="otro">Otro</option>
-            </select>
-            <input type="text" id="ot-proveedor-otro" placeholder="Escribir nombre del proveedor" style="display:none; margin-top:8px;">
+            <label>Día de trabajo</label>
+            <input type="date" id="ot-fecha">
           </div>
 
-          <div class="field">
-            <label>Trabajador</label>
-            <select id="ot-tecnico">
-              <option value="">Seleccionar trabajador</option>
-              <option value="Gomez Gaston">Gomez Gaston</option>
-              <option value="Villalba Sebastian">Villalba Sebastian</option>
-              <option value="Ramirez Andres">Ramirez Andres</option>
-              <option value="otro">Otro</option>
-            </select>
-            <input type="text" id="ot-tecnico-otro" placeholder="Escribir nombre del trabajador" style="display:none; margin-top:8px;">
+          <div class="form-grid">
+            <div class="field">
+              <label>Proveedor</label>
+              <select id="ot-proveedor">
+                <option value="">Seleccionar proveedor</option>
+                <option value="Pedro Sanchez">Pedro Sanchez</option>
+                <option value="Adrian Vilmo">Adrian Vilmo</option>
+                <option value="otro">Otro</option>
+              </select>
+              <input type="text" id="ot-proveedor-otro" placeholder="Escribir nombre del proveedor" style="display:none; margin-top:8px;">
+            </div>
+
+            <div class="field">
+              <label>Trabajador</label>
+              <select id="ot-tecnico">
+                <option value="">Seleccionar trabajador</option>
+                <option value="Gomez Gaston">Gomez Gaston</option>
+                <option value="Villalba Sebastian">Villalba Sebastian</option>
+                <option value="Ramirez Andres">Ramirez Andres</option>
+                <option value="otro">Otro</option>
+              </select>
+              <input type="text" id="ot-tecnico-otro" placeholder="Escribir nombre del trabajador" style="display:none; margin-top:8px;">
+            </div>
           </div>
         </div>
+
+        <div class="list-label">TAREAS</div>
+        <div id="ot-items"></div>
+
+        <button type="button" class="btn-ot-add" id="ot-btn-add">
+          <span class="ot-add-icon">+</span>
+          <span>NUEVO ÍTEM</span>
+        </button>
+
+        <button class="btn btn-green" id="btn-guardar-orden" style="margin-top:16px;">REGISTRAR ORDEN DE TRABAJO</button>
       </div>
 
-      <div class="list-label">TAREAS</div>
-      <div id="ot-items"></div>
-
-      <button type="button" class="btn-ot-add" id="ot-btn-add">
-        <span class="ot-add-icon">+</span>
-        <span>NUEVO ÍTEM</span>
-      </button>
-
-      <button class="btn btn-green" id="btn-guardar-orden" style="margin-top:16px;">REGISTRAR ORDEN DE TRABAJO</button>
-    </div>
-  </div>
-
-  <!-- TAB: INFORME (parte diario) — campo distinto de la carga técnica -->
-  <div id="tab-informe" class="vis-panel" style="display:none;">
-    <div class="app-content">
-      <div class="section-header">
-        <div class="section-title">PARTE DIARIO / INFORME</div>
-      </div>
-
-      <div class="card">
-        <div class="field">
-          <label>Asunto</label>
-          <input type="text" id="mtto-informe-asunto" placeholder="Asunto del informe...">
+      <div id="tab-ot-registro" class="mtto-subpanel" hidden>
+        <div class="section-header">
+          <div class="section-title">REGISTRO OT</div>
+          <div class="fecha-badge" id="registro-ot-total">0 OT</div>
         </div>
-        <div class="field mb-0">
-          <label>Mensaje</label>
-          <textarea id="mtto-informe-cuerpo" placeholder="Escribí el informe, como si fuera un mail..." style="min-height:180px"></textarea>
+
+        <div class="card">
+          <div class="form-grid">
+            <div class="field">
+              <label>Buscar</label>
+              <input type="text" id="registro-ot-buscar" placeholder="N° OT, trabajador o descripción...">
+            </div>
+            <div class="field">
+              <label>Fecha</label>
+              <input type="date" id="registro-ot-fecha">
+            </div>
+          </div>
+        </div>
+
+        <div id="registro-ot-list" class="registro-ot-list">
+          <div class="empty-state">Cargando órdenes de trabajo...</div>
         </div>
       </div>
-
-      <button class="btn btn-green" id="mtto-btn-informe">REGISTRAR INFORME</button>
-      <button class="btn btn-outline" id="mtto-btn-informe-cancelar" style="display:none;margin-top:8px">CANCELAR EDICIÓN</button>
     </div>
   </div>
 
@@ -414,6 +467,7 @@
       <div class="vis-nav-btn active" data-vtab="tab-partes">PARTES MTTO.</div>
       <div class="vis-nav-btn" data-vtab="tab-novedades">NOVEDADES</div>
       <div class="vis-nav-btn" data-vtab="tab-informes-vis">INFORMES</div>
+      <div class="vis-nav-btn hidden-tab" data-vtab="tab-ot-admin" id="nav-admin-ot">OT</div>
       <div class="vis-nav-btn" data-vtab="tab-stats">ESTADÍSTICAS</div>
     </nav>
     <div class="hbadge">
@@ -497,6 +551,41 @@
 
       <div class="list-label">PARTE DIARIO</div>
       <div id="informes-vis-list"></div>
+    </div>
+  </div>
+
+  <!-- TAB: OT — solo consulta para ADMIN -->
+  <div id="tab-ot-admin" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="context-toolbar">
+        <div class="context-toolbar-copy">
+          <div class="context-eyebrow">ORDEN DE TRABAJO</div>
+          <div class="context-title">Registro OT</div>
+        </div>
+        <div class="context-picker context-picker-static"><span>CONSULTA</span></div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">REGISTRO OT</div>
+        <div class="fecha-badge" id="admin-registro-ot-total">0 OT</div>
+      </div>
+
+      <div class="card">
+        <div class="form-grid">
+          <div class="field">
+            <label>Buscar</label>
+            <input type="text" id="admin-registro-ot-buscar" placeholder="N° OT, trabajador o descripción...">
+          </div>
+          <div class="field">
+            <label>Fecha</label>
+            <input type="date" id="admin-registro-ot-fecha">
+          </div>
+        </div>
+      </div>
+
+      <div id="admin-registro-ot-list" class="registro-ot-list">
+        <div class="empty-state">Cargando órdenes de trabajo...</div>
+      </div>
     </div>
   </div>
 
@@ -675,6 +764,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script type="module" src="app.js"></script>
+<script src="js/navigation.js"></script>
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
