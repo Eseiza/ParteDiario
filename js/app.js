@@ -173,6 +173,7 @@ document.getElementById('login-btn').addEventListener('click', () => {
         const navAdminOT = document.getElementById('nav-admin-ot');
         if (navAdminOT) navAdminOT.classList.remove('hidden-tab');
         suscribirRegistroOT();
+        plSuscribir();
     }
 });
 
@@ -1571,4 +1572,272 @@ function renderCharts() {
             options: { plugins:{legend:legendStyle}, scales:{ x:{stacked:true,ticks:tickStyle,grid:{color:gridColor}}, y:{stacked:true,ticks:{...tickStyle,stepSize:1},grid:{color:gridColor},beginAtZero:true} } }
         });
     }
+    plRenderCharts();
+}
+// ══ PLANILLAS DE CONTROL (Frío · Caldera e instalaciones · Cámara de fermentado) ══
+const COL_PLANILLAS = "planillas";
+
+const PLANILLAS = {
+    frio: {
+        titulo: 'Equipo de Frío',
+        grupos: [{ campos: [
+            { k: 'tempSet',        l: 'Temperatura Set',            u: '°C' },
+            { k: 'tempMedida',     l: 'Temperatura Medida',         u: '°C' },
+            { k: 'tempCabezal1',   l: 'Temperatura Cabezal 1',      u: '°C' },
+            { k: 'tempCabezal2',   l: 'Temperatura Cabezal 2',      u: '°C' },
+            { k: 'consumoGlicol',  l: 'Consumo Bomba Glicol',       u: 'A'  },
+            { k: 'tempGlicol',     l: 'Temperatura Bomba Glicol',   u: '°C' },
+            { k: 'consumoMotor',   l: 'Consumo de Motor',           u: 'A'  }
+        ]}]
+    },
+    caldera: {
+        titulo: 'Caldera e Instalaciones',
+        grupos: [
+            { titulo: 'Caldera Ingea', campos: [
+                { k: 'pGas',       l: 'Presión de Gas',          u: 'bar' },
+                { k: 'pBomba',     l: 'Presión de Bomba',        u: 'bar' },
+                { k: 'pArranque',  l: 'Presión de Arranque',     u: 'bar' },
+                { k: 'tArranque',  l: 'Temperatura de Arranque', u: '°C'  },
+                { k: 'pCorte',     l: 'Presión de Corte',        u: 'bar' },
+                { k: 'tCorte',     l: 'Temperatura de Corte',    u: '°C'  }
+            ]},
+            { titulo: 'Ablandadores de Agua', campos: [
+                { k: 'ablNroEquipo', l: 'N° de Equipo / Tacho', t: 'text' },
+                { k: 'ablDureza',    l: 'Dureza',               u: 'mg/l' },
+                { k: 'ablEstadoSal', l: 'Estado de Sal / General', t: 'text' },
+                { k: 'ablAgregaSal', l: '¿Agrega sal?',         t: 'yn' },
+                { k: 'ablRealizo',   l: 'Estado / Realizó',     t: 'text' }
+            ]},
+            { titulo: 'Preparación de Sorbato', campos: [
+                { k: 'sorAgua',    l: 'Agua',           u: 'L'  },
+                { k: 'sorSorbato', l: 'Sorbato',        u: 'kg' },
+                { k: 'sorCitrico', l: 'Cítrico' },
+                { k: 'sorAlcohol', l: 'Alcohol',        u: 'L'  },
+                { k: 'sorHoras',   l: 'Horas',          u: 'h'  },
+                { k: 'sorAgrega',  l: '¿Agrega?',       t: 'yn' }
+            ]}
+        ]
+    },
+    fermentado: {
+        titulo: 'Cámara de Fermentado',
+        grupos: [
+            { titulo: 'Mediciones manuales (psicrométricas)', campos: [
+                { k: 'bulboSeco',   l: 'Temperatura Bulbo Seco',   u: '°C' },
+                { k: 'bulboHumedo', l: 'Temperatura Bulbo Húmedo', u: '°C' },
+                { k: 'hrManual',    l: 'H.R. % (calculada, editable)', u: '%' }
+            ]},
+            { titulo: 'Panel View', campos: [
+                { k: 'panelTemp', l: 'Temperatura Panel', u: '°C' },
+                { k: 'panelHr',   l: 'H.R. % Panel',      u: '%'  }
+            ]},
+            { titulo: 'Seteos', campos: [
+                { k: 'seteoTemp', l: 'Seteo Temperatura', u: '°C' },
+                { k: 'seteoHr',   l: 'Seteo H.R. %',      u: '%'  }
+            ]}
+        ]
+    }
+};
+
+function plAhora() {
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    return { fecha: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`, hora: `${p(d.getHours())}:${p(d.getMinutes())}` };
+}
+
+function plCampoHtml(tipo, c) {
+    const id = `pl-${tipo}-${c.k}`;
+    if (c.t === 'yn') {
+        return `<div class="field"><label>${c.l}</label><div class="pl-yn">
+            <label><input type="radio" name="${id}" value="SI"><span>SÍ</span></label>
+            <label><input type="radio" name="${id}" value="NO"><span>NO</span></label></div></div>`;
+    }
+    const attrs = c.t === 'text' ? 'type="text"' : 'type="number" step="any" inputmode="decimal"';
+    const unidad = c.u ? `<em class="pl-unit">${c.u}</em>` : '';
+    return `<div class="field"><label for="${id}">${c.l}</label>
+        <div class="pl-input${c.u ? ' has-unit' : ''}"><input ${attrs} id="${id}">${unidad}</div></div>`;
+}
+
+function plRenderForms() {
+    document.querySelectorAll('[data-pl-form]').forEach(box => {
+        const tipo = box.dataset.plForm;
+        const cfg = PLANILLAS[tipo];
+        const generales = `<div class="form-grid">
+            <div class="field"><label>Fecha</label><input type="date" id="pl-${tipo}-fecha"></div>
+            <div class="field"><label>Hora</label><input type="time" id="pl-${tipo}-hora"></div>
+            <div class="field full"><label>Nombre / Responsable</label><input type="text" id="pl-${tipo}-responsable"></div></div>`;
+        const grupos = cfg.grupos.map(g => `${g.titulo ? `<div class="card-title pl-grupo">${g.titulo}</div>` : ''}
+            <div class="form-grid">${g.campos.map(c => plCampoHtml(tipo, c)).join('')}</div>`).join('');
+        box.innerHTML = generales + grupos;
+    });
+    // % HR automática desde bulbo seco / húmedo (fórmula psicrométrica, ~1013 hPa)
+    ['bulboSeco', 'bulboHumedo'].forEach(k => {
+        document.getElementById(`pl-fermentado-${k}`).addEventListener('input', plCalcHr);
+    });
+}
+
+function plCalcHr() {
+    const td = parseFloat(document.getElementById('pl-fermentado-bulboSeco').value);
+    const tw = parseFloat(document.getElementById('pl-fermentado-bulboHumedo').value);
+    const out = document.getElementById('pl-fermentado-hrManual');
+    if (isNaN(td) || isNaN(tw) || tw > td) { return; }
+    const es = t => 6.112 * Math.exp(17.62 * t / (243.12 + t));
+    const e = es(tw) - 0.00066 * (1 + 0.00115 * tw) * 1013.25 * (td - tw);
+    out.value = Math.max(0, Math.min(100, (e / es(td)) * 100)).toFixed(0);
+}
+
+function plPrefill() {
+    const { fecha, hora } = plAhora();
+    Object.keys(PLANILLAS).forEach(tipo => {
+        const f = document.getElementById(`pl-${tipo}-fecha`);
+        const h = document.getElementById(`pl-${tipo}-hora`);
+        const r = document.getElementById(`pl-${tipo}-responsable`);
+        if (f && !f.value) f.value = fecha;
+        if (h && !h.value) h.value = hora;
+        if (r && !r.value) r.value = state.currentUser || '';
+    });
+}
+
+function plReset(tipo) {
+    PLANILLAS[tipo].grupos.forEach(g => g.campos.forEach(c => {
+        if (c.t === 'yn') document.querySelectorAll(`input[name="pl-${tipo}-${c.k}"]`).forEach(r => r.checked = false);
+        else document.getElementById(`pl-${tipo}-${c.k}`).value = '';
+    }));
+    ['fecha', 'hora'].forEach(x => document.getElementById(`pl-${tipo}-${x}`).value = '');
+    plPrefill();
+}
+
+async function plGuardar(tipo, btn) {
+    const g = id => document.getElementById(`pl-${tipo}-${id}`).value.trim();
+    const fecha = g('fecha'), hora = g('hora'), responsable = g('responsable');
+    if (!fecha || !hora || !responsable) { showToast('Completá fecha, hora y responsable', true); return; }
+
+    const datos = {};
+    PLANILLAS[tipo].grupos.forEach(grp => grp.campos.forEach(c => {
+        const v = c.t === 'yn'
+            ? (document.querySelector(`input[name="pl-${tipo}-${c.k}"]:checked`)?.value || '')
+            : g(c.k);
+        if (v !== '') datos[c.k] = (c.t === 'text' || c.t === 'yn') ? v : Number(v.replace(',', '.'));
+    }));
+    if (!Object.keys(datos).length) { showToast('No cargaste ningún dato', true); return; }
+
+    btn.disabled = true; btn.textContent = 'GUARDANDO...';
+    try {
+        await addDoc(collection(db, COL_PLANILLAS), {
+            tipo, fecha, hora, responsable, datos,
+            usuario: state.currentUser, timestamp: Date.now()
+        });
+        showToast('✓ Control registrado correctamente');
+        plReset(tipo);
+    } catch (e) {
+        showToast('Error al guardar', true); console.error(e);
+    } finally {
+        btn.disabled = false; btn.textContent = 'REGISTRAR CONTROL';
+    }
+}
+
+let planillas = [], planillasUnsub = null;
+
+function plSuscribir() {
+    if (planillasUnsub) return;
+    planillasUnsub = onSnapshot(query(collection(db, COL_PLANILLAS), orderBy('timestamp', 'desc')), snap => {
+        planillas = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+        plRenderHistorial(''); plRenderHistorial('admin-');
+        if (document.getElementById('chart-pl-frio')) renderCharts();
+    }, e => console.error(e));
+}
+
+function plRenderHistorial(prefix = '') {
+    const tEl = document.getElementById(`${prefix}pl-filtro-tipo`);
+    if (!tEl) return;
+    const tipo = tEl.value;
+    const fecha = document.getElementById(`${prefix}pl-filtro-fecha`).value;
+    const lista = planillas.filter(p => (!tipo || p.tipo === tipo) && (!fecha || p.fecha === fecha));
+    const box = document.getElementById(`${prefix}pl-historial-lista`);
+    if (!lista.length) { box.innerHTML = '<div class="card">Sin registros.</div>'; return; }
+    box.innerHTML = lista.map(p => {
+        const cfg = PLANILLAS[p.tipo];
+        if (!cfg) return '';
+        const [y, m, d] = (p.fecha || '').split('-');
+        const grupos = cfg.grupos.map(g => {
+            const filas = g.campos.filter(c => p.datos?.[c.k] !== undefined).map(c =>
+                `<div class="pl-fila"><span>${c.l}</span><b>${escaparHTML(p.datos[c.k])}${c.u ? ' ' + c.u : ''}</b></div>`).join('');
+            return filas ? `${g.titulo ? `<div class="card-title pl-grupo">${g.titulo}</div>` : ''}${filas}` : '';
+        }).join('');
+        return `<div class="card"><div class="card-title">${cfg.titulo} · ${d}/${m}/${y} ${escaparHTML(p.hora)} · ${escaparHTML(p.responsable)}</div>${grupos}</div>`;
+    }).join('');
+}
+
+plRenderForms();
+document.querySelectorAll('[data-pl-save]').forEach(b => b.addEventListener('click', () => plGuardar(b.dataset.plSave, b)));
+['', 'admin-'].forEach(pre => {
+    document.getElementById(`${pre}pl-filtro-tipo`)?.addEventListener('change', () => plRenderHistorial(pre));
+    document.getElementById(`${pre}pl-filtro-fecha`)?.addEventListener('change', () => plRenderHistorial(pre));
+});
+document.getElementById('pl-rango')?.addEventListener('change', () => plRenderCharts());
+document.querySelector('[data-ctab="tab-planillas"]')?.addEventListener('click', plPrefill);
+document.addEventListener('parted:subviewchange', e => {
+    if (e.detail?.groupId !== 'tab-planillas') return;
+    plPrefill();
+    if (e.detail.targetId === 'tab-pl-historial') plSuscribir();
+});
+
+// ── Gráficos de planillas (ESTADÍSTICAS) ──
+const PL_SERIES = {
+    frio: [
+        { k: 'tempMedida',    l: 'Temperatura medida',        c: '#4285f4' },
+        { k: 'tempCabezal1',  l: 'Temperatura en cabezal 1',  c: '#ea4335' },
+        { k: 'tempCabezal2',  l: 'Temperatura en cabezal 2',  c: '#fbbc04' },
+        { k: 'consumoGlicol', l: 'Consumo bomba glicol',      c: '#34a853' },
+        { k: 'tempGlicol',    l: 'Temperatura bomba glicol',  c: '#ff6d01' },
+        { k: 'consumoMotor',  l: 'Consumo de motor',          c: '#46bdc6' }
+    ],
+    fermentado: [
+        { k: 'bulboHumedo', l: 'Temp. bulbo húmedo',            c: '#ff9900' },
+        { k: 'hrManual',    l: 'H.R. % tabla psicrométrica',    c: '#ea4335' },
+        { k: 'panelTemp',   l: 'Temp. panel',                   c: '#fbbc04' },
+        { k: 'panelHr',     l: 'H.R. % panel',                  c: '#34a853' },
+        { k: 'seteoTemp',   l: 'Seteo temperatura',             c: '#ff6d01' },
+        { k: 'seteoHr',     l: 'Seteo H.R. %',                  c: '#46bdc6' }
+    ]
+};
+
+function plRenderCharts() {
+    const rango = parseInt(document.getElementById('pl-rango')?.value ?? '30', 10);
+    const desde = rango ? Date.now() - rango * 86400000 : 0;
+    const gridColor = '#40444b55';
+    const tick = { color: '#8e9297', font: { family: 'DM Mono', size: 10 } };
+
+    Object.keys(PL_SERIES).forEach(tipo => {
+        const cv = document.getElementById(`chart-pl-${tipo}`);
+        if (!cv) return;
+        if (charts['pl' + tipo]) { charts['pl' + tipo].destroy(); delete charts['pl' + tipo]; }
+
+        const regs = planillas
+            .filter(p => p.tipo === tipo && p.fecha && new Date(`${p.fecha}T${p.hora || '00:00'}`).getTime() >= desde)
+            .sort((a, b) => `${a.fecha}T${a.hora}`.localeCompare(`${b.fecha}T${b.hora}`));
+
+        const labels = regs.map(p => {
+            const [y, m, d] = p.fecha.split('-');
+            return `${d}/${m} ${p.hora || ''}`.trim();
+        });
+        const datasets = PL_SERIES[tipo].map(s => ({
+            label: s.l,
+            data: regs.map(p => (typeof p.datos?.[s.k] === 'number' ? p.datos[s.k] : null)),
+            borderColor: s.c, backgroundColor: s.c,
+            borderWidth: 1.5, pointRadius: 1.5, pointHoverRadius: 4, tension: .2, spanGaps: true
+        })).filter(d => d.data.some(v => v !== null));
+
+        charts['pl' + tipo] = new Chart(cv, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { position: 'bottom', labels: { color: '#8e9297', font: { family: 'DM Mono', size: 11 }, padding: 14, boxWidth: 12 } } },
+                scales: {
+                    x: { ticks: { ...tick, maxRotation: 90, minRotation: 60, autoSkip: true, maxTicksLimit: 40 }, grid: { color: gridColor } },
+                    y: { ticks: tick, grid: { color: gridColor } }
+                }
+            }
+        });
+    });
 }
