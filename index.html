@@ -58,6 +58,7 @@
       <div class="vis-nav-btn" data-ctab="tab-orden-trabajo">OT</div>
       <div class="vis-nav-btn" data-ctab="tab-historial-carga">HISTORIAL</div>
       <div class="vis-nav-btn" data-ctab="tab-mtto-novedades">NOVEDADES</div>
+      <div class="vis-nav-btn" data-ctab="tab-planillas">PLANILLAS</div>
       <div class="vis-nav-btn hidden-tab" data-ctab="tab-mtto-todos" id="nav-mtto-todos">PARTES MTTO</div>
     </nav>
     <div class="hbadge">
@@ -171,6 +172,64 @@
 
         <button class="btn btn-green" id="mtto-btn-informe">REGISTRAR INFORME</button>
         <button class="btn btn-outline" id="mtto-btn-informe-cancelar" style="display:none;margin-top:8px">CANCELAR EDICIÓN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: PLANILLAS — controles de equipos e instalaciones -->
+  <div id="tab-planillas" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="context-toolbar">
+        <div class="context-toolbar-copy">
+          <div class="context-eyebrow">PLANILLAS</div>
+          <div class="context-title">Equipo de Frío</div>
+        </div>
+        <label class="context-picker">
+          <span>Planilla</span>
+          <select class="context-view-select" data-subview-group="tab-planillas" aria-label="Planilla">
+            <option value="tab-pl-frio">EQUIPO DE FRÍO</option>
+            <option value="tab-pl-caldera">CALDERA E INSTALACIONES</option>
+            <option value="tab-pl-fermentado">CÁMARA DE FERMENTADO</option>
+            <option value="tab-pl-historial">HISTORIAL</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="tab-pl-frio" class="mtto-subpanel active">
+        <div class="section-header"><div class="section-title">CONTROL EQUIPO DE FRÍO</div></div>
+        <div class="card" data-pl-form="frio"></div>
+        <button class="btn btn-green" data-pl-save="frio">REGISTRAR CONTROL</button>
+      </div>
+
+      <div id="tab-pl-caldera" class="mtto-subpanel" hidden>
+        <div class="section-header"><div class="section-title">CALDERA E INSTALACIONES</div></div>
+        <div class="card" data-pl-form="caldera"></div>
+        <button class="btn btn-green" data-pl-save="caldera">REGISTRAR CONTROL</button>
+      </div>
+
+      <div id="tab-pl-fermentado" class="mtto-subpanel" hidden>
+        <div class="section-header"><div class="section-title">CÁMARA DE FERMENTADO</div></div>
+        <div class="card" data-pl-form="fermentado"></div>
+        <button class="btn btn-green" data-pl-save="fermentado">REGISTRAR CONTROL</button>
+      </div>
+
+      <div id="tab-pl-historial" class="mtto-subpanel" hidden>
+        <div class="section-header"><div class="section-title">HISTORIAL DE PLANILLAS</div></div>
+        <div class="card">
+          <div class="form-grid">
+            <div class="field">
+              <label>Planilla</label>
+              <select id="pl-filtro-tipo">
+                <option value="">Todas</option>
+                <option value="frio">Equipo de Frío</option>
+                <option value="caldera">Caldera e Instalaciones</option>
+                <option value="fermentado">Cámara de Fermentado</option>
+              </select>
+            </div>
+            <div class="field"><label>Fecha</label><input type="date" id="pl-filtro-fecha"></div>
+          </div>
+        </div>
+        <div id="pl-historial-lista"></div>
       </div>
     </div>
   </div>
@@ -468,6 +527,7 @@
       <div class="vis-nav-btn" data-vtab="tab-novedades">NOVEDADES</div>
       <div class="vis-nav-btn" data-vtab="tab-informes-vis">INFORMES</div>
       <div class="vis-nav-btn hidden-tab" data-vtab="tab-ot-admin" id="nav-admin-ot">OT</div>
+      <div class="vis-nav-btn" data-vtab="tab-planillas-admin">PLANILLAS</div>
       <div class="vis-nav-btn" data-vtab="tab-stats">ESTADÍSTICAS</div>
     </nav>
     <div class="hbadge">
@@ -589,6 +649,28 @@
     </div>
   </div>
 
+  <!-- TAB: PLANILLAS (admin, solo lectura) -->
+  <div id="tab-planillas-admin" class="vis-panel" style="display:none;">
+    <div class="app-content">
+      <div class="section-header"><div class="section-title">PLANILLAS DE CONTROL</div></div>
+      <div class="card">
+        <div class="form-grid">
+          <div class="field">
+            <label>Planilla</label>
+            <select id="admin-pl-filtro-tipo">
+              <option value="">Todas</option>
+              <option value="frio">Equipo de Frío</option>
+              <option value="caldera">Caldera e Instalaciones</option>
+              <option value="fermentado">Cámara de Fermentado</option>
+            </select>
+          </div>
+          <div class="field"><label>Fecha</label><input type="date" id="admin-pl-filtro-fecha"></div>
+        </div>
+      </div>
+      <div id="admin-pl-historial-lista"></div>
+    </div>
+  </div>
+
   <!-- TAB: ESTADÍSTICAS -->
   <div id="tab-stats" class="vis-panel" style="display:none;">
     <div class="app-content">
@@ -614,6 +696,22 @@
         <div class="card chart-card"><div class="card-title">POR TIPO</div><canvas id="chart-tipos"></canvas></div>
         <div class="card chart-card"><div class="card-title">POR SECTOR</div><canvas id="chart-nov-sectores"></canvas></div>
       </div>
+
+      <div class="stats-block-title" style="margin-top:32px">CONTROL DE PLANILLAS</div>
+      <div class="card pl-range-card">
+        <div class="field mb-0">
+          <label>Período</label>
+          <select id="pl-rango">
+            <option value="7">Últimos 7 días</option>
+            <option value="30" selected>Últimos 30 días</option>
+            <option value="90">Últimos 90 días</option>
+            <option value="365">Último año</option>
+            <option value="0">Todo el historial</option>
+          </select>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">CONTROL EQUIPO DE FRÍO</div><div class="pl-chart-box"><canvas id="chart-pl-frio"></canvas></div></div>
+      <div class="card"><div class="card-title">CONTROL DE CÁMARA DE FERMENTADO</div><div class="pl-chart-box"><canvas id="chart-pl-fermentado"></canvas></div></div>
 
       <div class="stats-side-grid">
         <div class="card sidebar-block">
