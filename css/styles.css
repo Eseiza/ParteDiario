@@ -617,6 +617,14 @@ select { cursor: pointer; }
 
 /* ══ ORDEN DE TRABAJO (terciarizados) ══ */
 input[type="date"], input[type="time"] { color-scheme: dark; min-height: 44px; }
+/* iOS Safari: los date/time nativos se desbordan y quedan centrados; los igualamos al resto */
+input[type="date"], input[type="time"] {
+  -webkit-appearance: none; appearance: none;
+  display: block; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box;
+  text-align: left; line-height: 1.2;
+}
+input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; margin: 0; min-height: 1.2em; }
+input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { opacity: .7; }
 .ot-item {
   background: var(--surface);
   border: 1px solid var(--border);
