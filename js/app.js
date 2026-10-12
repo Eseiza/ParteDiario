@@ -1661,9 +1661,9 @@ function plRenderForms() {
         const tipo = box.dataset.plForm;
         const cfg = PLANILLAS[tipo];
         const generales = `<div class="form-grid">
-            <div class="field"><label>Fecha</label><input type="date" id="pl-${tipo}-fecha"></div>
-            <div class="field"><label>Hora</label><input type="time" id="pl-${tipo}-hora"></div>
-            <div class="field full"><label>Nombre / Responsable</label><input type="text" id="pl-${tipo}-responsable"></div></div>`;
+            <div class="field"><label>Fecha</label><input type="text" id="pl-${tipo}-fecha" class="pl-auto" readonly tabindex="-1" aria-readonly="true"></div>
+            <div class="field"><label>Hora</label><input type="text" id="pl-${tipo}-hora" class="pl-auto" readonly tabindex="-1" aria-readonly="true"></div>
+            <div class="field full"><label>Nombre / Responsable</label><input type="text" id="pl-${tipo}-responsable" class="pl-auto" readonly tabindex="-1" aria-readonly="true"></div></div>`;
         const grupos = cfg.grupos.map(g => `${g.titulo ? `<div class="card-title pl-grupo">${g.titulo}</div>` : ''}
             <div class="form-grid">${g.campos.map(c => plCampoHtml(tipo, c)).join('')}</div>`).join('');
         box.innerHTML = generales + grupos;
@@ -1684,31 +1684,36 @@ function plCalcHr() {
     out.value = Math.max(0, Math.min(100, (e / es(td)) * 100)).toFixed(0);
 }
 
+// Fecha, hora y responsable son automáticos (solo lectura): se muestran en formato
+// local y se refrescan solos; al guardar se vuelven a tomar del reloj y de la sesión.
+function plFmtFecha(iso) { const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}`; }
+
 function plPrefill() {
     const { fecha, hora } = plAhora();
     Object.keys(PLANILLAS).forEach(tipo => {
         const f = document.getElementById(`pl-${tipo}-fecha`);
         const h = document.getElementById(`pl-${tipo}-hora`);
         const r = document.getElementById(`pl-${tipo}-responsable`);
-        if (f && !f.value) f.value = fecha;
-        if (h && !h.value) h.value = hora;
-        if (r && !r.value) r.value = state.currentUser || '';
+        if (f) f.value = plFmtFecha(fecha);
+        if (h) h.value = hora;
+        if (r) r.value = state.currentUser || '';
     });
 }
+setInterval(plPrefill, 15000);
 
 function plReset(tipo) {
     PLANILLAS[tipo].grupos.forEach(g => g.campos.forEach(c => {
         if (c.t === 'yn') document.querySelectorAll(`input[name="pl-${tipo}-${c.k}"]`).forEach(r => r.checked = false);
         else document.getElementById(`pl-${tipo}-${c.k}`).value = '';
     }));
-    ['fecha', 'hora'].forEach(x => document.getElementById(`pl-${tipo}-${x}`).value = '');
     plPrefill();
 }
 
 async function plGuardar(tipo, btn) {
     const g = id => document.getElementById(`pl-${tipo}-${id}`).value.trim();
-    const fecha = g('fecha'), hora = g('hora'), responsable = g('responsable');
-    if (!fecha || !hora || !responsable) { showToast('Completá fecha, hora y responsable', true); return; }
+    const { fecha, hora } = plAhora();               // automáticos: del reloj al momento de guardar
+    const responsable = state.currentUser || '';     // automático: usuario logueado
+    if (!responsable) { showToast('No se pudo identificar al usuario', true); return; }
 
     const datos = {};
     PLANILLAS[tipo].grupos.forEach(grp => grp.campos.forEach(c => {
