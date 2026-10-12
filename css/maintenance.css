@@ -104,10 +104,16 @@
   font-family: var(--font-body); font-size: 14px; outline: none; border-radius: var(--r-sm);
   transition: border-color .2s, box-shadow .2s; -moz-appearance: textfield; appearance: textfield;
 }
-[data-pl-form] input[type="date"], [data-pl-form] input[type="time"] { color-scheme: dark; appearance: auto; }
 [data-pl-form] input[type="number"]::-webkit-outer-spin-button,
 [data-pl-form] input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 [data-pl-form] input:focus { border-color: var(--muted); box-shadow: 0 0 0 3px rgba(240,242,245,.05); }
+
+/* Campos automáticos (fecha / hora / responsable): bloqueados */
+[data-pl-form] input.pl-auto {
+  background: transparent; border-style: dashed; color: var(--muted);
+  cursor: not-allowed; user-select: none; -webkit-user-select: none; -webkit-text-fill-color: var(--muted); opacity: 1;
+}
+[data-pl-form] input.pl-auto:focus { border-color: var(--border); box-shadow: none; }
 
 .pl-input { position: relative; }
 .pl-input.has-unit input { padding-right: 52px; }
