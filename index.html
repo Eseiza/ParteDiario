@@ -131,8 +131,8 @@
                 <label class="radio-label"><input type="radio" name="paroProduccion" value="no" checked> No</label>
               </div>
               <div class="paro-min" data-paro-for="paroProduccion" style="display:none;">
-                <label for="campo-paro-min">¿Cuántos minutos se paró?</label>
-                <select id="campo-paro-min" class="paro-min-select"></select>
+                <label for="campo-paro-min">¿Cuántos minutos se paró? <small>(escribí solo el número, en minutos)</small></label>
+                <div class="pl-input has-unit"><input type="text" id="campo-paro-min" class="paro-min-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="Ej: 30"><em class="pl-unit">minutos</em></div>
               </div>
             </div>
           </div>
@@ -459,8 +459,8 @@
               <label class="radio-label"><input type="radio" name="sup-paro-produccion" value="no" checked> No</label>
             </div>
             <div class="paro-min" data-paro-for="sup-paro-produccion" style="display:none;">
-              <label for="sup-paro-min">¿Cuántos minutos se paró?</label>
-              <select id="sup-paro-min" class="paro-min-select"></select>
+              <label for="sup-paro-min">¿Cuántos minutos se paró? <small>(escribí solo el número, en minutos)</small></label>
+              <div class="pl-input has-unit"><input type="text" id="sup-paro-min" class="paro-min-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="Ej: 30"><em class="pl-unit">minutos</em></div>
             </div>
           </div>
 
@@ -777,8 +777,8 @@
             <label class="radio-label"><input type="radio" name="modal-edit-paro" value="no"> No</label>
           </div>
           <div class="paro-min" data-paro-for="modal-edit-paro" style="display:none;">
-            <label for="modal-edit-paro-min">¿Cuántos minutos se paró?</label>
-            <select id="modal-edit-paro-min" class="paro-min-select"></select>
+            <label for="modal-edit-paro-min">¿Cuántos minutos se paró? <small>(escribí solo el número, en minutos)</small></label>
+            <div class="pl-input has-unit"><input type="text" id="modal-edit-paro-min" class="paro-min-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="Ej: 30"><em class="pl-unit">minutos</em></div>
           </div>
         </div>
         <div class="modal-edit-grid">
