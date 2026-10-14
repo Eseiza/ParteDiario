@@ -883,13 +883,63 @@ document.querySelectorAll('[data-stab]').forEach(btn => {
     });
 });
 
+
+// ══ PARO DE PRODUCCIÓN: minutos ══
+const PARO_MINUTOS = [5, 10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 480];
+function paroMinLabel(m) {
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60), r = m % 60;
+    return `${m} min (${h} h${r ? ' ' + r + ' min' : ''})`;
+}
+function initParoMin() {
+    document.querySelectorAll('.paro-min').forEach(wrap => {
+        const sel = wrap.querySelector('select');
+        sel.innerHTML = '<option value="">Seleccionar tiempo</option>' +
+            PARO_MINUTOS.map(m => `<option value="${m}">${paroMinLabel(m)}</option>`).join('');
+        const name = wrap.dataset.paroFor;
+        const refresh = () => {
+            const si = document.querySelector(`input[name="${name}"]:checked`)?.value === 'si';
+            wrap.style.display = si ? 'block' : 'none';
+            if (!si) sel.value = '';
+        };
+        document.querySelectorAll(`input[name="${name}"]`).forEach(r => r.addEventListener('change', refresh));
+        wrap._refresh = refresh;
+    });
+}
+// Lee el paro: devuelve { paroProduccion, paroMinutos } o null si falta indicar los minutos
+function leerParo(radioName, selectId) {
+    const paroProduccion = document.querySelector(`input[name="${radioName}"]:checked`)?.value || 'no';
+    if (paroProduccion !== 'si') return { paroProduccion: 'no', paroMinutos: 0 };
+    const min = parseInt(document.getElementById(selectId).value, 10);
+    if (!min) { showToast('Indicá cuántos minutos se paró la producción', true); return null; }
+    return { paroProduccion, paroMinutos: min };
+}
+function cargarParo(radioName, selectId, paro, minutos) {
+    const val = paro === 'si' ? 'si' : 'no';
+    const r = document.querySelector(`input[name="${radioName}"][value="${val}"]`);
+    if (r) r.checked = true;
+    const sel = document.getElementById(selectId);
+    // si el valor guardado no está en la lista, se agrega para no perderlo
+    if (val === 'si' && minutos && ![...sel.options].some(o => o.value === String(minutos))) {
+        sel.add(new Option(paroMinLabel(minutos), String(minutos)));
+    }
+    document.querySelector(`.paro-min[data-paro-for="${radioName}"]`)?._refresh();
+    sel.value = val === 'si' && minutos ? String(minutos) : '';
+}
+function textoParo(o) {
+    if (o.paroProduccion !== 'si') return 'No';
+    return o.paroMinutos ? `Sí — ${paroMinLabel(o.paroMinutos)}` : 'Sí';
+}
+
 // ══ GUARDAR PARTE ══
 document.getElementById('btn-guardar-parte')?.addEventListener('click', async () => {
     const sectorSelect = document.getElementById('campo-sector').value;
     const sectorOtro   = document.getElementById('campo-sector-otro').value.trim();
     const realizada    = document.getElementById('campo-realizada').value.trim();
     const solicitante  = document.getElementById('campo-solicitante').value.trim();
-    const paroProduccion = document.querySelector('input[name="paroProduccion"]:checked')?.value || 'no';
+    const paro = leerParo('paroProduccion', 'campo-paro-min');
+    if (!paro) return;
+    const { paroProduccion, paroMinutos } = paro;
 
     let sector = sectorSelect;
     if (sectorSelect === 'Otros') {
@@ -916,6 +966,7 @@ document.getElementById('btn-guardar-parte')?.addEventListener('click', async ()
                     realizada,
                     solicitante,
                     paroProduccion,
+                    paroMinutos,
                     estado: state.estadoActivo
                 });
                 showToast('✓ Parte actualizado correctamente');
@@ -929,6 +980,7 @@ document.getElementById('btn-guardar-parte')?.addEventListener('click', async ()
                 realizada,
                 solicitante,
                 paroProduccion,
+                paroMinutos,
                 estado:      state.estadoActivo,
                 usuario:     state.currentUser
             });
@@ -990,7 +1042,9 @@ document.getElementById('btn-guardar-novedad')?.addEventListener('click', async 
     const descripcion = document.getElementById('sup-descripcion').value.trim();
     const resp        = obtenerValorConOtro('sup-responsable', 'sup-responsable-otro');
     const resuelto    = document.querySelector('input[name="resuelto"]:checked')?.value || 'no';
-    const paroProduccion = document.querySelector('input[name="sup-paro-produccion"]:checked')?.value || 'no';
+    const paro = leerParo('sup-paro-produccion', 'sup-paro-min');
+    if (!paro) return;
+    const { paroProduccion, paroMinutos } = paro;
 
     if (!sector || !descripcion || !state.supTurno || !state.supTipo) {
         showToast('Faltan datos obligatorios', true); return;
@@ -1013,6 +1067,7 @@ document.getElementById('btn-guardar-novedad')?.addEventListener('click', async 
                 descripcion,
                 responsable:    resp,
                 paroProduccion,
+                paroMinutos,
                 resuelto,
                 fechaEdicion:   Date.now(),
                 usuarioEdicion: state.currentUser
@@ -1028,6 +1083,7 @@ document.getElementById('btn-guardar-novedad')?.addEventListener('click', async 
                 descripcion,
                 responsable: resp,
                 paroProduccion,
+                paroMinutos,
                 resuelto,
                 usuario:     state.currentUser
             });
@@ -1054,8 +1110,7 @@ function editarNovedad(id) {
     document.getElementById('sup-sector').value      = n.sector || '';
     document.getElementById('sup-descripcion').value = n.descripcion || '';
     cargarValorConOtro('sup-responsable', 'sup-responsable-otro', n.responsable || '');
-    const paroSup = document.querySelector(`input[name="sup-paro-produccion"][value="${n.paroProduccion === 'si' ? 'si' : 'no'}"]`);
-    if (paroSup) paroSup.checked = true;
+    cargarParo('sup-paro-produccion', 'sup-paro-min', n.paroProduccion, n.paroMinutos);
     const rad = document.querySelector(`input[name="resuelto"][value="${n.resuelto || 'no'}"]`);
     if (rad) rad.checked = true;
 
@@ -1140,8 +1195,7 @@ function resetFormMtto() {
     document.getElementById('campo-sector-otro-wrap').style.display = 'none';
     document.querySelectorAll('.turno-btn:not(.turno-sup), .estado-btn')
         .forEach(b => b.classList.remove('selected'));
-    const no = document.querySelector('input[name="paroProduccion"][value="no"]');
-    if (no) no.checked = true;
+    cargarParo('paroProduccion', 'campo-paro-min', 'no', 0);
     state.turnoActivo = null; state.estadoActivo = null;
 
     editPartId = null;
@@ -1177,8 +1231,7 @@ window.editarParte = (id) => {
         document.getElementById('campo-sector-otro').value = p.sector || '';
     }
 
-    const paro = document.querySelector(`input[name="paroProduccion"][value="${p.paroProduccion === 'si' ? 'si' : 'no'}"]`);
-    if (paro) paro.checked = true;
+    cargarParo('paroProduccion', 'campo-paro-min', p.paroProduccion, p.paroMinutos);
 
     document.querySelectorAll('.turno-btn:not(.turno-sup)').forEach(b => {
         b.classList.toggle('selected', b.dataset.turno === p.turno);
@@ -1205,8 +1258,7 @@ document.getElementById('btn-cancelar-parte')?.addEventListener('click', resetFo
 function resetFormSup() {
     document.getElementById('sup-descripcion').value = '';
     cargarValorConOtro('sup-responsable', 'sup-responsable-otro', '');
-    const paroSupNo = document.querySelector('input[name="sup-paro-produccion"][value="no"]');
-    if (paroSupNo) paroSupNo.checked = true;
+    cargarParo('sup-paro-produccion', 'sup-paro-min', 'no', 0);
     document.getElementById('sup-sector').value      = '';
     document.querySelectorAll('.turno-btn.turno-sup, .tipo-btn')
         .forEach(b => b.classList.remove('selected'));
@@ -1236,7 +1288,7 @@ window.verParte = (id) => {
     document.getElementById('modal-meta').textContent        = `${p.fechaCorta} · Por ${p.usuario}`;
     document.getElementById('modal-realizada').textContent   = p.realizada;
     document.getElementById('modal-responsable').textContent = p.solicitante || '—';
-    document.getElementById('modal-solicitada').textContent  = p.paroProduccion === 'si' ? 'Sí' : 'No';
+    document.getElementById('modal-solicitada').textContent  = textoParo(p);
     document.getElementById('modal-turno').textContent       = (p.turno || '').toUpperCase();
     document.getElementById('modal-estado').textContent      = estadoLabels[p.estado] || (p.estado||'').toUpperCase();
 
@@ -1274,8 +1326,7 @@ function abrirEdicionEnModal(id) {
 
     document.getElementById('modal-edit-realizada').value   = p.realizada || '';
     document.getElementById('modal-edit-responsable').value = p.solicitante || '';
-    const paro = document.querySelector(`input[name="modal-edit-paro"][value="${p.paroProduccion === 'si' ? 'si' : 'no'}"]`);
-    if (paro) paro.checked = true;
+    cargarParo('modal-edit-paro', 'modal-edit-paro-min', p.paroProduccion, p.paroMinutos);
     document.getElementById('modal-edit-turno').value  = p.turno || 'mañana';
     document.getElementById('modal-edit-estado').value = p.estado === 'en-progreso' ? 'en-proceso' : (p.estado || 'pendiente');
 
@@ -1290,7 +1341,8 @@ function abrirEdicionEnModal(id) {
     btnGuardar.onclick = async () => {
         const realizada   = document.getElementById('modal-edit-realizada').value.trim();
         const solicitante = document.getElementById('modal-edit-responsable').value.trim();
-        const paroSel     = document.querySelector('input[name="modal-edit-paro"]:checked')?.value || 'no';
+        const paroEd      = leerParo('modal-edit-paro', 'modal-edit-paro-min');
+        if (!paroEd) return;
         const turno       = document.getElementById('modal-edit-turno').value;
         const estado      = document.getElementById('modal-edit-estado').value;
 
@@ -1306,7 +1358,7 @@ function abrirEdicionEnModal(id) {
         btnGuardar.textContent = 'GUARDANDO...';
         try {
             await updateDoc(doc(db, COL_PARTES, id), {
-                turno, realizada, solicitante, paroProduccion: paroSel, estado
+                turno, realizada, solicitante, paroProduccion: paroEd.paroProduccion, paroMinutos: paroEd.paroMinutos, estado
             });
             showToast('✓ Parte actualizado correctamente');
             cerrarModal();
@@ -1330,7 +1382,7 @@ window.verNovedad = (id) => {
     document.getElementById('modal-nov-meta').textContent     = `${n.fechaCorta} · Por ${n.usuario}`;
     document.getElementById('modal-nov-desc').textContent     = n.descripcion;
     document.getElementById('modal-nov-resp').textContent     = n.responsable || '—';
-    document.getElementById('modal-nov-paro-produccion').textContent = n.paroProduccion === 'si' ? 'Sí' : 'No';
+    document.getElementById('modal-nov-paro-produccion').textContent = textoParo(n);
     document.getElementById('modal-nov-resuelto').textContent = (resueltoLabel[n.resuelto] || n.resuelto)
         + (n.usuarioActualizacion ? ` — actualizado por ${n.usuarioActualizacion}${n.fechaActualizacion ? ' · ' + new Date(n.fechaActualizacion).toLocaleString('es-AR') : ''}` : '');
     document.getElementById('modal-nov-turno').textContent    = (n.turno || '').toUpperCase();
@@ -1650,11 +1702,40 @@ function plCampoHtml(tipo, c) {
             <label><input type="radio" name="${id}" value="SI"><span>SÍ</span></label>
             <label><input type="radio" name="${id}" value="NO"><span>NO</span></label></div></div>`;
     }
-    const attrs = c.t === 'text' ? 'type="text"' : 'type="number" step="any" inputmode="decimal"';
+    const esNum = c.t !== 'text';
+    // Numéricos: type="text" + inputmode="decimal" (el type="number" no deja escribir "-" ni "," en muchos celulares).
+    // El botón ± permite el signo menos en teclados que no lo traen (ej. iPhone).
+    const attrs = esNum ? 'type="text" inputmode="decimal" autocomplete="off" data-num="1"' : 'type="text"';
     const unidad = c.u ? `<em class="pl-unit">${c.u}</em>` : '';
+    const signo = esNum ? `<button type="button" class="pl-sign" tabindex="-1" aria-label="Cambiar signo (+/-)" data-sign-for="${id}">±</button>` : '';
     return `<div class="field"><label for="${id}">${c.l}</label>
-        <div class="pl-input${c.u ? ' has-unit' : ''}"><input ${attrs} id="${id}">${unidad}</div></div>`;
+        <div class="pl-input${c.u ? ' has-unit' : ''}${esNum ? ' has-sign' : ''}"><input ${attrs} id="${id}">${signo}${unidad}</div></div>`;
 }
+
+
+// Entrada numérica: permite dígitos, un signo "-" inicial y un solo separador decimal (, o .)
+function plLimpiarNumero(v) {
+    v = v.replace(/[^0-9.,\-\u2212]/g, '').replace(/\u2212/g, '-');
+    const neg = v.startsWith('-');
+    v = v.replace(/-/g, '');
+    const m = v.match(/[.,]/);
+    if (m) { const i = v.indexOf(m[0]); v = v.slice(0, i + 1) + v.slice(i + 1).replace(/[.,]/g, ''); }
+    return (neg ? '-' : '') + v;
+}
+document.addEventListener('input', e => {
+    const el = e.target;
+    if (!el.matches || !el.matches('input[data-num]')) return;
+    const limpio = plLimpiarNumero(el.value);
+    if (limpio !== el.value) el.value = limpio;
+});
+document.addEventListener('click', e => {
+    const b = e.target.closest?.('.pl-sign');
+    if (!b) return;
+    const inp = document.getElementById(b.dataset.signFor);
+    inp.value = inp.value.startsWith('-') ? inp.value.slice(1) : '-' + inp.value;
+    inp.focus();
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+});
 
 function plRenderForms() {
     document.querySelectorAll('[data-pl-form]').forEach(box => {
@@ -1675,8 +1756,8 @@ function plRenderForms() {
 }
 
 function plCalcHr() {
-    const td = parseFloat(document.getElementById('pl-fermentado-bulboSeco').value);
-    const tw = parseFloat(document.getElementById('pl-fermentado-bulboHumedo').value);
+    const td = parseFloat(document.getElementById('pl-fermentado-bulboSeco').value.replace(',', '.'));
+    const tw = parseFloat(document.getElementById('pl-fermentado-bulboHumedo').value.replace(',', '.'));
     const out = document.getElementById('pl-fermentado-hrManual');
     if (isNaN(td) || isNaN(tw) || tw > td) { return; }
     const es = t => 6.112 * Math.exp(17.62 * t / (243.12 + t));
@@ -1715,13 +1796,18 @@ async function plGuardar(tipo, btn) {
     const responsable = state.currentUser || '';     // automático: usuario logueado
     if (!responsable) { showToast('No se pudo identificar al usuario', true); return; }
 
-    const datos = {};
+    const datos = {}, invalidos = [];
     PLANILLAS[tipo].grupos.forEach(grp => grp.campos.forEach(c => {
         const v = c.t === 'yn'
             ? (document.querySelector(`input[name="pl-${tipo}-${c.k}"]:checked`)?.value || '')
             : g(c.k);
-        if (v !== '') datos[c.k] = (c.t === 'text' || c.t === 'yn') ? v : Number(v.replace(',', '.'));
+        if (v === '') return;
+        if (c.t === 'text' || c.t === 'yn') { datos[c.k] = v; return; }
+        const n = Number(v.replace(',', '.'));
+        if (!isFinite(n)) { invalidos.push(c.l); return; }
+        datos[c.k] = n;
     }));
+    if (invalidos.length) { showToast(`Valor inválido en: ${invalidos.join(', ')}`, true); return; }
     if (!Object.keys(datos).length) { showToast('No cargaste ningún dato', true); return; }
 
     btn.disabled = true; btn.textContent = 'GUARDANDO...';
@@ -1772,6 +1858,7 @@ function plRenderHistorial(prefix = '') {
 }
 
 plRenderForms();
+initParoMin();
 document.querySelectorAll('[data-pl-save]').forEach(b => b.addEventListener('click', () => plGuardar(b.dataset.plSave, b)));
 ['', 'admin-'].forEach(pre => {
     document.getElementById(`${pre}pl-filtro-tipo`)?.addEventListener('change', () => plRenderHistorial(pre));
