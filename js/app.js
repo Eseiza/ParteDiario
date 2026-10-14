@@ -885,7 +885,6 @@ document.querySelectorAll('[data-stab]').forEach(btn => {
 
 
 // ══ PARO DE PRODUCCIÓN: minutos ══
-const PARO_MINUTOS = [5, 10, 15, 20, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300, 360, 480];
 function paroMinLabel(m) {
     if (m < 60) return `${m} min`;
     const h = Math.floor(m / 60), r = m % 60;
@@ -893,9 +892,8 @@ function paroMinLabel(m) {
 }
 function initParoMin() {
     document.querySelectorAll('.paro-min').forEach(wrap => {
-        const sel = wrap.querySelector('select');
-        sel.innerHTML = '<option value="">Seleccionar tiempo</option>' +
-            PARO_MINUTOS.map(m => `<option value="${m}">${paroMinLabel(m)}</option>`).join('');
+        const sel = wrap.querySelector('input');
+        sel.addEventListener('input', () => { sel.value = sel.value.replace(/\D/g, '').replace(/^0+(?=\d)/, ''); });
         const name = wrap.dataset.paroFor;
         const refresh = () => {
             const si = document.querySelector(`input[name="${name}"]:checked`)?.value === 'si';
@@ -911,7 +909,8 @@ function leerParo(radioName, selectId) {
     const paroProduccion = document.querySelector(`input[name="${radioName}"]:checked`)?.value || 'no';
     if (paroProduccion !== 'si') return { paroProduccion: 'no', paroMinutos: 0 };
     const min = parseInt(document.getElementById(selectId).value, 10);
-    if (!min) { showToast('Indicá cuántos minutos se paró la producción', true); return null; }
+    if (!min || min < 1) { showToast('Indicá cuántos minutos se paró la producción (solo el número)', true); return null; }
+    if (min > 1440) { showToast('Los minutos de paro no pueden superar 1440 (24 h)', true); return null; }
     return { paroProduccion, paroMinutos: min };
 }
 function cargarParo(radioName, selectId, paro, minutos) {
@@ -919,10 +918,6 @@ function cargarParo(radioName, selectId, paro, minutos) {
     const r = document.querySelector(`input[name="${radioName}"][value="${val}"]`);
     if (r) r.checked = true;
     const sel = document.getElementById(selectId);
-    // si el valor guardado no está en la lista, se agrega para no perderlo
-    if (val === 'si' && minutos && ![...sel.options].some(o => o.value === String(minutos))) {
-        sel.add(new Option(paroMinLabel(minutos), String(minutos)));
-    }
     document.querySelector(`.paro-min[data-paro-for="${radioName}"]`)?._refresh();
     sel.value = val === 'si' && minutos ? String(minutos) : '';
 }
