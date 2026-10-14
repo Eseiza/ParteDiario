@@ -155,4 +155,7 @@
 /* Paro de producción: minutos */
 .paro-min { margin-top: 10px; }
 .paro-min label { display: block; margin-bottom: 6px; }
-.paro-min select { width: 100%; }
+
+
+.paro-min label small { font-weight: 400; opacity: .7; text-transform: none; letter-spacing: 0; }
+.paro-min .pl-input.has-unit input { padding-right: 80px; }
