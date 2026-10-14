@@ -37,7 +37,7 @@
     </div>
     <div class="field">
       <label>Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••">
+      <input type="password" id="login-pass" autocomplete="current-password" placeholder="••••••">
     </div>
     <button class="btn" id="login-btn">INGRESAR</button>
   </div>
@@ -129,6 +129,10 @@
               <div class="radio-group">
                 <label class="radio-label"><input type="radio" name="paroProduccion" value="si"> Sí</label>
                 <label class="radio-label"><input type="radio" name="paroProduccion" value="no" checked> No</label>
+              </div>
+              <div class="paro-min" data-paro-for="paroProduccion" style="display:none;">
+                <label for="campo-paro-min">¿Cuántos minutos se paró?</label>
+                <select id="campo-paro-min" class="paro-min-select"></select>
               </div>
             </div>
           </div>
@@ -454,6 +458,10 @@
               <label class="radio-label"><input type="radio" name="sup-paro-produccion" value="si"> Sí</label>
               <label class="radio-label"><input type="radio" name="sup-paro-produccion" value="no" checked> No</label>
             </div>
+            <div class="paro-min" data-paro-for="sup-paro-produccion" style="display:none;">
+              <label for="sup-paro-min">¿Cuántos minutos se paró?</label>
+              <select id="sup-paro-min" class="paro-min-select"></select>
+            </div>
           </div>
 
           <!-- NUEVO: 3 opciones de resolución -->
@@ -767,6 +775,10 @@
           <div class="radio-group">
             <label class="radio-label"><input type="radio" name="modal-edit-paro" value="si"> Sí</label>
             <label class="radio-label"><input type="radio" name="modal-edit-paro" value="no"> No</label>
+          </div>
+          <div class="paro-min" data-paro-for="modal-edit-paro" style="display:none;">
+            <label for="modal-edit-paro-min">¿Cuántos minutos se paró?</label>
+            <select id="modal-edit-paro-min" class="paro-min-select"></select>
           </div>
         </div>
         <div class="modal-edit-grid">
