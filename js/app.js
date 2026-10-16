@@ -1868,62 +1868,87 @@ document.addEventListener('parted:subviewchange', e => {
 });
 
 // ── Gráficos de planillas (ESTADÍSTICAS) ──
-const PL_SERIES = {
-    frio: [
+// Cada gráfico: planilla de origen (tipo), canvas y series. y: 'y' (eje izq.) o 'y2' (eje der.)
+const PL_CHARTS = [
+    { id: 'frio', tipo: 'frio', series: [
         { k: 'tempMedida',    l: 'Temperatura medida',        c: '#4285f4' },
         { k: 'tempCabezal1',  l: 'Temperatura en cabezal 1',  c: '#ea4335' },
         { k: 'tempCabezal2',  l: 'Temperatura en cabezal 2',  c: '#fbbc04' },
         { k: 'consumoGlicol', l: 'Consumo bomba glicol',      c: '#34a853' },
         { k: 'tempGlicol',    l: 'Temperatura bomba glicol',  c: '#ff6d01' },
         { k: 'consumoMotor',  l: 'Consumo de motor',          c: '#46bdc6' }
-    ],
-    fermentado: [
+    ]},
+    { id: 'caldera-ingea', tipo: 'caldera', y1: 'Presión (bar)', y2: 'Temperatura (°C)', series: [
+        { k: 'pGas',      l: 'Presión de gas (bar)',          c: '#4285f4' },
+        { k: 'pBomba',    l: 'Presión de bomba (bar)',        c: '#34a853' },
+        { k: 'pArranque', l: 'Presión de arranque (bar)',     c: '#fbbc04' },
+        { k: 'pCorte',    l: 'Presión de corte (bar)',        c: '#46bdc6' },
+        { k: 'tArranque', l: 'Temp. de arranque (°C)',        c: '#ff6d01', y: 'y2' },
+        { k: 'tCorte',    l: 'Temp. de corte (°C)',           c: '#ea4335', y: 'y2' }
+    ]},
+    { id: 'caldera-ablandadores', tipo: 'caldera', y1: 'Dureza (mg/l)', series: [
+        { k: 'ablDureza', l: 'Dureza (mg/l)', c: '#4285f4' }
+    ]},
+    { id: 'caldera-sorbato', tipo: 'caldera', y1: 'Agua / Alcohol (L)', y2: 'Sorbato (kg) · Cítrico · Horas', series: [
+        { k: 'sorAgua',    l: 'Agua (L)',     c: '#4285f4' },
+        { k: 'sorAlcohol', l: 'Alcohol (L)',  c: '#ea4335' },
+        { k: 'sorSorbato', l: 'Sorbato (kg)', c: '#34a853', y: 'y2' },
+        { k: 'sorCitrico', l: 'Cítrico',      c: '#fbbc04', y: 'y2' },
+        { k: 'sorHoras',   l: 'Horas (h)',    c: '#ff6d01', y: 'y2' }
+    ]},
+    { id: 'fermentado', tipo: 'fermentado', series: [
         { k: 'bulboHumedo', l: 'Temp. bulbo húmedo',            c: '#ff9900' },
         { k: 'hrManual',    l: 'H.R. % tabla psicrométrica',    c: '#ea4335' },
         { k: 'panelTemp',   l: 'Temp. panel',                   c: '#fbbc04' },
         { k: 'panelHr',     l: 'H.R. % panel',                  c: '#34a853' },
         { k: 'seteoTemp',   l: 'Seteo temperatura',             c: '#ff6d01' },
         { k: 'seteoHr',     l: 'Seteo H.R. %',                  c: '#46bdc6' }
-    ]
-};
+    ]}
+];
 
 function plRenderCharts() {
     const rango = parseInt(document.getElementById('pl-rango')?.value ?? '30', 10);
     const desde = rango ? Date.now() - rango * 86400000 : 0;
     const gridColor = '#40444b55';
     const tick = { color: '#8e9297', font: { family: 'DM Mono', size: 10 } };
+    const tituloEje = t => ({ display: true, text: t, color: '#8e9297', font: { family: 'DM Mono', size: 10 } });
 
-    Object.keys(PL_SERIES).forEach(tipo => {
-        const cv = document.getElementById(`chart-pl-${tipo}`);
+    PL_CHARTS.forEach(cfg => {
+        const cv = document.getElementById(`chart-pl-${cfg.id}`);
         if (!cv) return;
-        if (charts['pl' + tipo]) { charts['pl' + tipo].destroy(); delete charts['pl' + tipo]; }
+        const key = 'pl' + cfg.id;
+        if (charts[key]) { charts[key].destroy(); delete charts[key]; }
 
         const regs = planillas
-            .filter(p => p.tipo === tipo && p.fecha && new Date(`${p.fecha}T${p.hora || '00:00'}`).getTime() >= desde)
+            .filter(p => p.tipo === cfg.tipo && p.fecha && new Date(`${p.fecha}T${p.hora || '00:00'}`).getTime() >= desde)
             .sort((a, b) => `${a.fecha}T${a.hora}`.localeCompare(`${b.fecha}T${b.hora}`));
 
         const labels = regs.map(p => {
             const [y, m, d] = p.fecha.split('-');
             return `${d}/${m} ${p.hora || ''}`.trim();
         });
-        const datasets = PL_SERIES[tipo].map(s => ({
+        const datasets = cfg.series.map(s => ({
             label: s.l,
             data: regs.map(p => (typeof p.datos?.[s.k] === 'number' ? p.datos[s.k] : null)),
-            borderColor: s.c, backgroundColor: s.c,
+            borderColor: s.c, backgroundColor: s.c, yAxisID: s.y || 'y',
             borderWidth: 1.5, pointRadius: 1.5, pointHoverRadius: 4, tension: .2, spanGaps: true
         })).filter(d => d.data.some(v => v !== null));
 
-        charts['pl' + tipo] = new Chart(cv, {
+        const usaY2 = datasets.some(d => d.yAxisID === 'y2');
+        const scales = {
+            x: { ticks: { ...tick, maxRotation: 90, minRotation: 60, autoSkip: true, maxTicksLimit: 40 }, grid: { color: gridColor } },
+            y: { position: 'left', ticks: tick, grid: { color: gridColor }, ...(cfg.y1 ? { title: tituloEje(cfg.y1) } : {}) }
+        };
+        if (usaY2) scales.y2 = { position: 'right', ticks: tick, grid: { drawOnChartArea: false }, ...(cfg.y2 ? { title: tituloEje(cfg.y2) } : {}) };
+
+        charts[key] = new Chart(cv, {
             type: 'line',
             data: { labels, datasets },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: { legend: { position: 'bottom', labels: { color: '#8e9297', font: { family: 'DM Mono', size: 11 }, padding: 14, boxWidth: 12 } } },
-                scales: {
-                    x: { ticks: { ...tick, maxRotation: 90, minRotation: 60, autoSkip: true, maxTicksLimit: 40 }, grid: { color: gridColor } },
-                    y: { ticks: tick, grid: { color: gridColor } }
-                }
+                scales
             }
         });
     });
