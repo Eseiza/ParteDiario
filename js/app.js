@@ -1682,6 +1682,39 @@ const PLANILLAS = {
                 { k: 'seteoHr',   l: 'Seteo H.R. %',      u: '%'  }
             ]}
         ]
+    },
+    horno: {
+        titulo: 'Horno',
+        grupos: [
+            { titulo: 'Zona 1 — Cámaras y Quemador', campos: [
+                { k: 'tComb1',   l: 'Temperatura Cámara Combustión', u: '°C' },
+                { k: 'alComb1',  l: 'Alarma Cámara Combustión',      u: '°C' },
+                { k: 'tCocc1',   l: 'Temperatura Cámara Cocción',    u: '°C' },
+                { k: 'spTemp1',  l: 'Setpoint Temperatura',          u: '°C' },
+                { k: 'spQuem1',  l: 'Alarma Quemador (Set point +)', u: '°C' },
+                { k: 'turbina1', l: 'Velocidad Turbina de Recirculación', u: 'rpm' }
+            ]},
+            { titulo: 'Zona 1 — Clapeta 1', campos: [
+                { k: 'clapSp1',    l: 'Set Point Clapeta 1',        u: '°C' },
+                { k: 'clapTemp1',  l: 'Temperatura Clapeta 1',      u: '°C' },
+                { k: 'clapSpCam1', l: 'SP Cámara (Clapeta 1)',      u: '°C' },
+                { k: 'clapAper1',  l: 'Apertura Clapeta 1',         u: '%'  }
+            ]},
+            { titulo: 'Zona 2 — Cámaras y Quemador', campos: [
+                { k: 'tComb2',   l: 'Temperatura Cámara Combustión', u: '°C' },
+                { k: 'alComb2',  l: 'Alarma Cámara Combustión',      u: '°C' },
+                { k: 'tCocc2',   l: 'Temperatura Cámara Cocción',    u: '°C' },
+                { k: 'spTemp2',  l: 'Setpoint Temperatura',          u: '°C' },
+                { k: 'spQuem2',  l: 'Alarma Quemador (Set point +)', u: '°C' },
+                { k: 'turbina2', l: 'Velocidad Turbina de Recirculación', u: 'rpm' }
+            ]},
+            { titulo: 'Zona 2 — Clapeta 2', campos: [
+                { k: 'clapSp2',    l: 'Set Point Clapeta 2',        u: '°C' },
+                { k: 'clapTemp2',  l: 'Temperatura Clapeta 2',      u: '°C' },
+                { k: 'clapSpCam2', l: 'SP Cámara (Clapeta 2)',      u: '°C' },
+                { k: 'clapAper2',  l: 'Apertura Clapeta 2',         u: '%'  }
+            ]}
+        ]
     }
 };
 
@@ -1903,6 +1936,26 @@ const PL_CHARTS = [
         { k: 'panelHr',     l: 'H.R. % panel',                  c: '#34a853' },
         { k: 'seteoTemp',   l: 'Seteo temperatura',             c: '#ff6d01' },
         { k: 'seteoHr',     l: 'Seteo H.R. %',                  c: '#46bdc6' }
+    ]},
+    { id: 'horno-z1', tipo: 'horno', y1: 'Temperatura (°C)', y2: 'Apertura (%) · Turbina (rpm)', series: [
+        { k: 'tComb1',    l: 'Temp. cámara combustión (°C)', c: '#ea4335' },
+        { k: 'alComb1',   l: 'Alarma cámara combustión (°C)', c: '#ff6d01' },
+        { k: 'tCocc1',    l: 'Temp. cámara cocción (°C)',     c: '#4285f4' },
+        { k: 'spTemp1',   l: 'Setpoint temperatura (°C)',     c: '#46bdc6' },
+        { k: 'clapTemp1', l: 'Temp. clapeta 1 (°C)',         c: '#fbbc04' },
+        { k: 'clapSp1',   l: 'Set point clapeta 1 (°C)',     c: '#9c27b0' },
+        { k: 'clapAper1', l: 'Apertura clapeta 1 (%)',       c: '#34a853', y: 'y2' },
+        { k: 'turbina1',  l: 'Velocidad turbina recirculación (rpm)', c: '#795548', y: 'y2' }
+    ]},
+    { id: 'horno-z2', tipo: 'horno', y1: 'Temperatura (°C)', y2: 'Apertura (%) · Turbina (rpm)', series: [
+        { k: 'tComb2',    l: 'Temp. cámara combustión (°C)', c: '#ea4335' },
+        { k: 'alComb2',   l: 'Alarma cámara combustión (°C)', c: '#ff6d01' },
+        { k: 'tCocc2',    l: 'Temp. cámara cocción (°C)',     c: '#4285f4' },
+        { k: 'spTemp2',   l: 'Setpoint temperatura (°C)',     c: '#46bdc6' },
+        { k: 'clapTemp2', l: 'Temp. clapeta 2 (°C)',         c: '#fbbc04' },
+        { k: 'clapSp2',   l: 'Set point clapeta 2 (°C)',     c: '#9c27b0' },
+        { k: 'clapAper2', l: 'Apertura clapeta 2 (%)',       c: '#34a853', y: 'y2' },
+        { k: 'turbina2',  l: 'Velocidad turbina recirculación (rpm)', c: '#795548', y: 'y2' }
     ]}
 ];
 
