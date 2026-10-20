@@ -110,19 +110,6 @@
                 <option value="Horno">Horno</option>
                 <option value="Enfriador">Enfriador</option>
                 <option value="Envase">Envase</option>
-                <option value="Sala de Caldera">Caldera</option>
-                <option value="Sala de Compresores">Compresores</option>
-                <option value="Taller">Taller</option>
-                <option value="Silos">Silos</option>
-                <option value="Tapas">Casita</option>
-                <option value="Transportes">Transportes</option>
-                <option value="Desmoldador">Desmoldador</option>
-                <option value="Grupo">Grupo</option>
-                <option value="Expediciones">Expediciones</option>
-                <option value="Formulación">Formulación</option>
-                <option value="Vestuarios">Vestuarios</option>
-                <option value="Camiones">Camiones</option>
-                <option value="Casita">Casita</option>
                 <option value="Otros">Otros</option>
               </select>
             </div>
@@ -207,6 +194,7 @@
             <option value="tab-pl-frio">EQUIPO DE FRÍO</option>
             <option value="tab-pl-caldera">CALDERA E INSTALACIONES</option>
             <option value="tab-pl-fermentado">CÁMARA DE FERMENTADO</option>
+            <option value="tab-pl-horno">HORNO</option>
             <option value="tab-pl-historial">HISTORIAL</option>
           </select>
         </label>
@@ -230,6 +218,12 @@
         <button class="btn btn-green" data-pl-save="fermentado">REGISTRAR CONTROL</button>
       </div>
 
+      <div id="tab-pl-horno" class="mtto-subpanel" hidden>
+        <div class="section-header"><div class="section-title">HORNO</div></div>
+        <div class="card" data-pl-form="horno"></div>
+        <button class="btn btn-green" data-pl-save="horno">REGISTRAR CONTROL</button>
+      </div>
+
       <div id="tab-pl-historial" class="mtto-subpanel" hidden>
         <div class="section-header"><div class="section-title">HISTORIAL DE PLANILLAS</div></div>
         <div class="card">
@@ -241,6 +235,7 @@
                 <option value="frio">Equipo de Frío</option>
                 <option value="caldera">Caldera e Instalaciones</option>
                 <option value="fermentado">Cámara de Fermentado</option>
+                <option value="horno">Horno</option>
               </select>
             </div>
             <div class="field"><label>Fecha</label><input type="date" id="pl-filtro-fecha"></div>
@@ -683,6 +678,7 @@
               <option value="frio">Equipo de Frío</option>
               <option value="caldera">Caldera e Instalaciones</option>
               <option value="fermentado">Cámara de Fermentado</option>
+                <option value="horno">Horno</option>
             </select>
           </div>
           <div class="field"><label>Fecha</label><input type="date" id="admin-pl-filtro-fecha"></div>
@@ -736,6 +732,8 @@
       <div class="card"><div class="card-title">ABLANDADORES DE AGUA</div><div class="pl-chart-box"><canvas id="chart-pl-caldera-ablandadores"></canvas></div></div>
       <div class="card"><div class="card-title">PREPARACIÓN DE SORBATO</div><div class="pl-chart-box"><canvas id="chart-pl-caldera-sorbato"></canvas></div></div>
       <div class="card"><div class="card-title">CONTROL DE CÁMARA DE FERMENTADO</div><div class="pl-chart-box"><canvas id="chart-pl-fermentado"></canvas></div></div>
+      <div class="card"><div class="card-title">HORNO — ZONA 1</div><div class="pl-chart-box"><canvas id="chart-pl-horno-z1"></canvas></div></div>
+      <div class="card"><div class="card-title">HORNO — ZONA 2</div><div class="pl-chart-box"><canvas id="chart-pl-horno-z2"></canvas></div></div>
 
       <div class="stats-side-grid">
         <div class="card sidebar-block">
